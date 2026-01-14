@@ -1,17 +1,16 @@
 import { useCameraPermissions, CameraView } from "expo-camera";
 import { useEffect, useState } from "react";
 import { View, StyleSheet, Text, Image, Pressable, StatusBar, Platform } from "react-native";
+import Animated, { BounceIn, BounceOut } from 'react-native-reanimated';
 
 type Props = {
     onComplete: (roomId: string) => void;
 };
 
-
 export default function QRScan({ onComplete }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
   const isGranted = Boolean(permission?.granted);
-  const [scannedData, setScannedData] = useState<string | null>(null);
-  const [roomId, setRoomId] = useState<string | null>(null);
+  const [showContent, setShowContent] = useState(true);
 
   useEffect(() => {
     if (permission && permission.status === "denied") {
@@ -20,17 +19,15 @@ export default function QRScan({ onComplete }: Props) {
   }, [permission]);
 
   const handleScan = ({ data }: { data: string }) => {
-    if (!data) return;
-    if (scannedData) return;
-    setScannedData(data);
-    setRoomId(data);
+    if (!data || !showContent) return;
+    
+    setShowContent(false);
     onComplete(data);
   };
-
+    
   return (
     <View style={styles.container}>
       {Platform.OS === "android" ? <StatusBar hidden /> : null}
-
       {!isGranted ? (
         <>
           <Text style={styles.info}>Permission caméra nécessaire</Text>
@@ -40,23 +37,31 @@ export default function QRScan({ onComplete }: Props) {
         </>
       ) : (
         <>
-
-        <Image
+          {showContent && (
+            <Animated.Image
               source={require("../../assets/icons/logo.png")}
               style={styles.image}
-          />
-
-
+              entering={BounceIn.delay(0).duration(500)}
+              exiting={BounceOut.duration(500)}
+            />
+          )}
+          
           <CameraView
             style={styles.camera}
             facing="back"
             barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
             onBarcodeScanned={handleScan}
           />
-
-          <Text style={styles.info}>
-            {scannedData ? `QR détecté : ${scannedData}` : "Rends-toi sur 2100.fr et scan le QR Code"}
-          </Text>
+          
+          {showContent && (
+            <Animated.Text 
+              style={styles.info}
+              entering={BounceIn.delay(500).duration(500)}
+              exiting={BounceOut.duration(500)}
+            >
+              Rends-toi sur 2100.fr et scan le QR Code
+            </Animated.Text>
+          )}
         </>
       )}
     </View>

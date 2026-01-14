@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Image, View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import Animated, { BounceIn, BounceOut } from 'react-native-reanimated';
+
 
 type Props = {
     onComplete: (userName: string) => void;
@@ -52,7 +54,7 @@ export default function Tuto({ onComplete }: Props) {
     };
 
     return (
-        <View style={styles.container}>
+        <Animated.View style={styles.container} entering={BounceIn.duration(500)} exiting={BounceOut.duration(500)}>
 
 
             {step === 0 && (
@@ -120,7 +122,7 @@ export default function Tuto({ onComplete }: Props) {
 
             </View>
 
-        </View>
+        </Animated.View>
     );
 }
 

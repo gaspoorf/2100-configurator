@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
+import Animated, { BounceIn, BounceOut } from 'react-native-reanimated';
+
 
 type Props = {
   onComplete: (userName: string) => void;
@@ -20,11 +22,14 @@ export default function Onboarding({ onComplete }: Props) {
   const [step, setStep] = useState(0);
   const [userName, setUserName] = useState('');
   const video = useRef(null);
+  const [showContent, setShowContent] = useState(true);
+
 
   const handleNext = () => {
     if (step < ONBOARDING_STEPS.length - 1) {
       setStep(step + 1);
     } else {
+      setShowContent(false);
       onComplete(userName);
     }
   };
@@ -39,23 +44,20 @@ export default function Onboarding({ onComplete }: Props) {
 
   return (
     <View style={styles.container}>
-      
-      <Video
-        ref={video}
-        style={styles.video}
-        source={require('../../assets/videos/dance.mp4')}
-        isLooping={true}
-        isMuted={true}
-        shouldPlay={true}
-        resizeMode={ResizeMode.COVER}
-        useNativeControls={false}
-      />
 
+      {showContent && (
+        <View style={styles.content} > 
+          <Animated.Text 
+          key={step}
+          style={styles.description}
+          entering={BounceIn.delay(500).duration(500)}
+          exiting={BounceOut.duration(500)}
+          >
+            {currentContent.description}
+          </Animated.Text>
+        </View>
+      )}
 
-      <View style={styles.content}>
-        <Text style={styles.description}>{currentContent.description}</Text>
-      </View>
-      
       {step === 0 && (
         <TextInput
           style={styles.input}
@@ -65,6 +67,26 @@ export default function Onboarding({ onComplete }: Props) {
           placeholderTextColor="#00000050" 
         />
       )}
+
+
+      {showContent && (
+        <Animated.View style={styles.videoContainer} entering={BounceIn.delay(500).duration(500)} exiting={BounceOut.duration(500)}>
+          <Video
+            style={styles.video}
+            ref={video}
+            source={require('../../assets/videos/dance.mp4')}
+            isLooping={true}
+            isMuted={true}
+            shouldPlay={true}
+            resizeMode={ResizeMode.COVER}
+            useNativeControls={false}
+          />
+        </Animated.View >
+      )}
+
+
+
+      
 
       <TouchableOpacity
         style={[
@@ -89,8 +111,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F3EF', 
     alignItems: 'center', 
     padding: 40, 
-    paddingVertical: 80,
+    paddingTop: 0,
     position: 'relative',
+    justifyContent: 'space-between',
   },
   content: { 
     alignItems: 'center', 
@@ -154,6 +177,14 @@ const styles = StyleSheet.create({
     color: '#000', 
     textAlign: "center",
     zIndex: 1,
+  },
+  videoContainer:{
+    flex: 2, 
+    alignItems: 'center', 
+    padding: 0, 
+    paddingVertical: 0,
+    position: 'relative',
+    bottom: 0,
   },
   video: {
     bottom: 0,
