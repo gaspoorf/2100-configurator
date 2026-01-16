@@ -1,46 +1,48 @@
 import React, { forwardRef, useImperativeHandle, useRef } from "react";
-import { Animated, Dimensions, Image, StyleSheet } from "react-native";
+import { Animated, Text, Dimensions, Image, StyleSheet } from "react-native";
 
-const { height } = Dimensions.get("window");
+export type TransitionOverlayRef = {
+  play: (onMiddle: () => void, onComplete?: () => void) => void;
+};
 
-const TransitionOverlay = forwardRef((props, ref) => {
-  const translateY = useRef(new Animated.Value(height)).current;
-
+const TransitionOverlay = forwardRef<TransitionOverlayRef>((props, ref) => {
+  const opacity = useRef(new Animated.Value(0)).current;
+  
   useImperativeHandle(ref, () => ({
-    play: (onMiddle: () => void) => {
+    play: (onMiddle: () => void, onComplete?: () => void) => {
 
-        Animated.timing(translateY, {
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start(() => {
+        onMiddle?.();
+        setTimeout(() => {
+          Animated.timing(opacity, {
             toValue: 0,
-            duration: 800,
+            duration: 1000,
             useNativeDriver: true,
-        }).start(() => {
-            
-            onMiddle?.();
-
-            setTimeout(() => {
-                Animated.timing(translateY, {
-                    toValue: height,
-                    duration: 800,
-                    useNativeDriver: true,
-                }).start();
-            }, 3000);
-        });
+          }).start(() => {
+            onComplete?.();
+          });
+        }, 2000);
+      });
     },
   }));
-
+  
   return (
     <Animated.View
       pointerEvents="none"
       style={[
         styles.container,
-        { transform: [{ translateY }] }
+        { opacity }
       ]}
     >
       <Image
-        source={require("../../assets/img/hero-crop.png")}
+        source={require("../../assets/img/hero.png")}
         style={styles.image}
-        resizeMode="cover"
       />
+      <Text>Attend un peu, on installe le décor...</Text>
     </Animated.View>
   );
 });
@@ -54,9 +56,13 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "110%",
     zIndex: 9999,
+    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    alignItems: "center",
+    display: "flex",
   },
   image: {
-    width: "100%",
-    height: "130%",
+    width: 132,
+    height: 132,
   },
 });

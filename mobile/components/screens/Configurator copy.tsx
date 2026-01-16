@@ -10,6 +10,7 @@ import { Asset } from 'expo-asset';
 // Sensor 
 import { Accelerometer } from 'expo-sensors';
 import type { EventSubscription } from 'expo-modules-core';
+import { is } from "@react-three/fiber/dist/declarations/src/core/utils";
 
 // --- TYPES ---
 type Props = {
@@ -144,6 +145,7 @@ type ModelProps = {
     clothes: number;
     onClothesChange: (value: number) => void;
     isModelTurned: boolean;
+    isModelAppear: boolean;
 };
 
 function ModelComponent({ 
@@ -155,7 +157,8 @@ function ModelComponent({
     phone, onPhoneChange, 
     energy, onEnergyChange, 
     clothes, onClothesChange, 
-    isModelTurned 
+    isModelTurned, 
+    isModelAppear
 }: ModelProps) {
     const asset = Asset.fromModule(require("../../assets/3d/configurator-color.glb"));
     if (!asset.localUri) asset.downloadAsync();
@@ -249,6 +252,8 @@ function ModelComponent({
 
     // --- ANIMATIONS GLOBALES ---
     useFrame(() => {
+
+
         // Rotation Modèle
         if (groupRef.current) {
             const targetY = isModelTurned ? -2.5 : 0;

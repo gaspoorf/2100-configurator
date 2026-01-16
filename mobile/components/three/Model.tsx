@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import { useFrame, ThreeEvent } from "@react-three/fiber/native";
 import { useGLTF } from "@react-three/drei";
@@ -9,7 +9,7 @@ export type ModelProps = {
     onPlaneChange: (v: number) => void;
     transport: any;
     onTransportChange: (v: any) => void;
-    promptIA: 0 | 33 | 66 | 100;
+    promptIA: 0 | 50 | 100;
     onPromptIAChange: () => void;
     meat: boolean;
     onMeatChange: () => void;
@@ -22,6 +22,8 @@ export type ModelProps = {
     clothes: number;
     onClothesChange: (v: number) => void;
     isModelTurned: boolean;
+    isModelAppear: boolean;
+    onAppearFinished?: () => void;
     resultIsShown: boolean;
     feedbackIsShown: boolean;
     onReveal: (overrides?: any) => void;
@@ -46,13 +48,17 @@ export const Model = React.memo(function Model({
     clothes,
     onClothesChange,
     isModelTurned,
+    isModelAppear,
+    onAppearFinished,
     onReveal,
     onCameraMovement,
     onYearChange,
 }: ModelProps) {
-    const asset = Asset.fromModule(require("../../assets/3d/configurateur.glb"));
+    const asset = Asset.fromModule(require("../../assets/3d/configvff.glb"));
     if (!asset.localUri) asset.downloadAsync();
     const gltf = useGLTF(asset.localUri || asset.uri) as any;
+
+    const [rotationDone, setRotationDone] = useState(false);
 
     const groupRef = useRef<THREE.Group>(null);
 
@@ -89,8 +95,11 @@ export const Model = React.memo(function Model({
     const button7 = useRef<Record<string, THREE.Object3D | null>>({});
     const spots = useRef<Record<string, THREE.Object3D | null>>({});
 
-    const realGear = useRef<THREE.Object3D | null>(null);
-    const fakeGear = useRef<THREE.Object3D | null>(null);
+    const reset = useRef<Record<string, THREE.Object3D | null>>({});
+    const pressedReset = useRef<string | null>(null);
+
+    const realGear = useRef<THREE.Mesh | null>(null);
+    const fakeGear = useRef<THREE.Mesh | null>(null);
 
     const gearStartY = useRef(0);
     const gearTarget = useRef(0);
@@ -101,6 +110,12 @@ export const Model = React.memo(function Model({
     const yearIndex = useRef(0);
     const STEP_ROTATION = Math.PI / 0.5;
 
+    const START_POSITION_Z = -90;
+    const START_POSITION_X = 40;
+    const START_POSITION_Y = 40;
+    const START_ROTATION_Z =  -2;
+    const START_ROTATION_X = Math.PI * 2 + 5.3;
+
     useEffect(() => {
         if (!gltf?.scene) return;
 
@@ -109,11 +124,14 @@ export const Model = React.memo(function Model({
             child.userData.name = child.name;
 
             if (child.name === "gear-real") {
+                realGear.current = child;
                 child.visible = false;
                 child.raycast = () => null;
-                realGear.current = child;
             }
-            if (child.name === "gear-fake") fakeGear.current = child;
+            if (child.name === "gear-fake") {
+                fakeGear.current = child;
+                child.visible = true;
+            }
 
             if (child.name === "1") {
                 cursor1.current = child;
@@ -158,16 +176,98 @@ export const Model = React.memo(function Model({
                 spots.current[child.name] = child;
                 child.userData.initialZ = child.position.z;
             }
+            if (child.name === "reset") {
+                reset.current[child.name] = child;
+                child.userData.initialZ = child.position.z;
+            }
         });
     }, [gltf]);
 
+    useEffect(() => {
+        if (groupRef.current) {
+            groupRef.current.position.z = START_POSITION_Z;
+            groupRef.current.position.x = START_POSITION_X;
+            groupRef.current.position.y = START_POSITION_Y;
+            groupRef.current.rotation.z = START_ROTATION_Z;
+            groupRef.current.rotation.x = START_ROTATION_X;
+        }
+    }, []);
+
+    // gerer les gears
+    useEffect(() => {
+        if (!realGear.current || !fakeGear.current) return;
+        
+        if (isModelTurned) {
+            setTimeout(() => {
+                if (!fakeGear.current || !realGear.current) return;
+                fakeGear.current.visible = false;
+                realGear.current.visible = true;
+                realGear.current.raycast = THREE.Mesh.prototype.raycast;
+            }, 2000);
+        } else {
+            fakeGear.current.visible = true;
+            realGear.current.visible = false;
+            realGear.current.raycast = () => null;
+        }
+    }, [isModelTurned]);
+
+
     useFrame(() => {
         if (!groupRef.current) return;
-            groupRef.current.rotation.y = THREE.MathUtils.lerp(
+        
+        groupRef.current.rotation.y = THREE.MathUtils.lerp(
             groupRef.current.rotation.y,
             isModelTurned ? -2.5 : 0,
             0.03
         );
+
+        if (isModelAppear && !rotationDone) {
+            const targetPosition = 0;
+            const targetRotationZ = 0;
+            const targetRotation = Math.PI * 2;
+            const ease = 0.05;
+            
+            groupRef.current.rotation.x = THREE.MathUtils.lerp(
+                groupRef.current.rotation.x,
+                targetRotation,
+                ease
+            );
+            groupRef.current.position.x = THREE.MathUtils.lerp(
+                groupRef.current.position.x,
+                targetPosition,
+                ease
+            );
+            groupRef.current.position.y = THREE.MathUtils.lerp(
+                groupRef.current.position.y,
+                targetPosition,
+                ease
+            );
+            groupRef.current.position.z = THREE.MathUtils.lerp(
+                groupRef.current.position.z,
+                targetPosition,
+                ease
+            );
+            groupRef.current.rotation.z = THREE.MathUtils.lerp(
+                groupRef.current.rotation.z,
+                targetRotationZ,
+                ease
+            );
+
+            if (
+                Math.abs(groupRef.current.rotation.x - targetRotation) < 0.01 &&
+                Math.abs(groupRef.current.position.z - targetPosition) < 0.01 &&
+                Math.abs(groupRef.current.position.x - targetPosition) < 0.01 &&
+                Math.abs(groupRef.current.rotation.z - targetRotationZ) < 0.01
+            ) {
+                groupRef.current.rotation.x = targetRotation;
+                groupRef.current.position.z = targetPosition;
+                groupRef.current.position.x = targetPosition;
+                groupRef.current.position.y = targetPosition
+                groupRef.current.rotation.z = targetRotationZ;
+                setRotationDone(true);
+                onAppearFinished?.();
+            }
+        }
     });
 
     useFrame(() => {
@@ -178,12 +278,12 @@ export const Model = React.memo(function Model({
         });
 
         Object.values(button3.current).forEach((b: any) => {
-            const i = promptIA === 0 ? 0 : promptIA === 33 ? 1 : promptIA === 66 ? 2 : 3;
-            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, b.userData.initial - [0, -1.5, -3, -5][i], 0.05);
+            const i = promptIA === 0 ? 0 : promptIA === 50 ? 1 : 2;
+            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, b.userData.initial - [0.15, -1.2, -2.5][i], 0.05);
         });
 
         Object.values(button4.current).forEach((b: any) => {
-            const z = meat ? b.userData.initial - 0.5 : b.userData.initial;
+            const z = meat ? b.userData.initial + 0.5 : b.userData.initial;
             b.rotation.z = THREE.MathUtils.lerp(b.rotation.z, z, 0.2);
         });
 
@@ -203,6 +303,14 @@ export const Model = React.memo(function Model({
             if (!b) return;
             const z = pressedSpot.current === k ? b.userData.initialZ - 0.3 : b.userData.initialZ;
             b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.2);
+        });
+
+        Object.values(reset.current).forEach((b: any) => {
+            if (!b) return;
+            const isPressed = pressedReset.current === b.userData.name; 
+            const z = isPressed ? b.userData.initialZ - 0.3 : b.userData.initialZ;
+            b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.2);
+            
         });
     });
 
@@ -265,9 +373,16 @@ export const Model = React.memo(function Model({
             pressedSpot.current = name;
             onCameraMovement("CAMERA_SPOT", spotMap[name as "spot-1" | "spot-2" | "spot-3"]);
         }
+        if (name === "reset") {
+            pressedReset.current = name;
+            console.log("RESET EXPERIENCE");
+        }
         if (name === "gear-real") {
             draggingGear.current = true;
             gearStartY.current = e.intersections[0]?.point.y ?? 0;
+        }
+        if (name === "gear-fake") {
+            fakeGear.current!.visible = false;
         }
     }, [onTransportChange, onPromptIAChange, onMeatChange, onPhoneChange, onEnergyChange, onReveal, onCameraMovement]);
 
@@ -355,7 +470,7 @@ export const Model = React.memo(function Model({
         if (dragging8.current && cursor8.current && plane8.current) {
             const pos = getLocalPosition(cursor8.current, plane8.current);
             if (pos) {
-                const min = -2.4, max = 6.8;
+                const min = -2.2, max = 5.7;
                 const val = THREE.MathUtils.mapLinear(Math.max(min, Math.min(max, pos.x - dragOffset.current.x)), max, min, 0, 100);
                 if (now - lastCallTime.current > THROTTLE_DELAY) {
                     onClothesChange(val);
@@ -374,7 +489,7 @@ export const Model = React.memo(function Model({
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
         >
-            <primitive object={gltf.scene} scale={2} />
+            <primitive object={gltf.scene} scale={2} position={[0, 0, 0]}/>
         </group>
     );
 });

@@ -1,26 +1,50 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
-import Animated, { BounceIn, BounceOut } from 'react-native-reanimated';
+import Animated, { 
+  BounceIn, 
+  BounceOut, 
+  useAnimatedStyle, 
+  withSpring, 
+  withTiming,
+  interpolateColor,
+  useDerivedValue
+} from 'react-native-reanimated';
 
 
 type Props = {
-  onComplete: (userName: string) => void;
+  userName: string | null;
+  onComplete: () => void;
 };
 
-const { width, height } = Dimensions.get('window');
-
 const ONBOARDING_STEPS = [
-  { title: "Étape 1", description: "Comment s'appelle votre héro ?" },
-  { title: "Étape 2", description: "" },
   { title: "", description: "Ta mission : Créer un écosystème capable de tenir tête aux changements climatiques." },
   { title: "", description: "Tu vas devoir faire des choix. Des vrais ! Des décisions qui vont tout changer pour ta planète." },
   { title: "", description: "Pas besoin d'être un.e écolo parfait.e. Juste… essaie de ne pas tout détruire ok ? Prêt.e ? Allez, on commence !" },
 ];
 
-export default function Onboarding({ onComplete }: Props) {
+const PaginationDot = ({ isActive }: { isActive: boolean }) => {
+  const rStyle = useAnimatedStyle(() => {
+    return {
+      width: withSpring(isActive ? 24 : 5, { damping: 15, stiffness: 100 }),
+      backgroundColor: withTiming(isActive ? '#000000' : '#908F8C', { duration: 100 }), 
+    };
+  }, [isActive]);
+  return <Animated.View style={[styles.dot, rStyle]} />;
+};
+
+const Pagination = ({ currentStep, totalSteps }: { currentStep: number, totalSteps: number }) => {
+  return (
+    <View style={styles.paginationContainer}>
+      {Array.from({ length: totalSteps }).map((_, index) => (
+        <PaginationDot key={index} isActive={currentStep === index} />
+      ))}
+    </View>
+  );
+};
+
+export default function Onboarding({ userName, onComplete }: Props) {
   const [step, setStep] = useState(0);
-  const [userName, setUserName] = useState('');
   const video = useRef(null);
   const [showContent, setShowContent] = useState(true);
 
@@ -30,20 +54,25 @@ export default function Onboarding({ onComplete }: Props) {
       setStep(step + 1);
     } else {
       setShowContent(false);
-      onComplete(userName);
+      onComplete();
     }
   };
 
   const currentContent = useMemo(() => ({
     ...ONBOARDING_STEPS[step],
     description:
-      step === 1
-        ? `Félicitations, ${userName} ! Tu tiens littéralement le destin de la planète entre tes mains. Maintenant, c'est toi le boss !`
+      step === 0
+        ? `Félicitations, ${userName ?? ''} ! Tu tiens littéralement le destin de la planète entre tes mains. Maintenant, c'est toi le boss !`
         : ONBOARDING_STEPS[step].description,
   }), [step, userName]);
 
+
   return (
     <View style={styles.container}>
+
+      <View style={styles.topHeader}>
+         <Pagination currentStep={step} totalSteps={ONBOARDING_STEPS.length} />
+      </View>
 
       {showContent && (
         <View style={styles.content} > 
@@ -56,16 +85,6 @@ export default function Onboarding({ onComplete }: Props) {
             {currentContent.description}
           </Animated.Text>
         </View>
-      )}
-
-      {step === 0 && (
-        <TextInput
-          style={styles.input}
-          placeholder="ENTRER UN NOM"
-          value={userName}
-          onChangeText={setUserName}
-          placeholderTextColor="#00000050" 
-        />
       )}
 
 
@@ -83,10 +102,6 @@ export default function Onboarding({ onComplete }: Props) {
           />
         </Animated.View >
       )}
-
-
-
-      
 
       <TouchableOpacity
         style={[
@@ -107,13 +122,36 @@ export default function Onboarding({ onComplete }: Props) {
 
 const styles = StyleSheet.create({
   container: { 
-    flex: 1, 
-    backgroundColor: '#F4F3EF', 
-    alignItems: 'center', 
-    padding: 40, 
-    paddingTop: 0,
-    position: 'relative',
-    justifyContent: 'space-between',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    backgroundColor: 'transparent',
+    height: '100%',
+    padding: 17,
+  },
+  topHeader: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 32,
+    gap: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  dot: {
+    height: 5,
+    borderRadius: 100,
   },
   content: { 
     alignItems: 'center', 
@@ -152,10 +190,11 @@ const styles = StyleSheet.create({
     opacity: 0.7 
   },
   buttonFinish: { 
-    width: '112%', 
+    width: '100%', 
     height: 70, 
     borderRadius: 35, 
     aspectRatio: undefined,
+
   
     alignSelf: 'center',
     position: 'absolute', 

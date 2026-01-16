@@ -11,7 +11,7 @@ const cameraPositions = [
     new THREE.Vector3(-7, -12, 25),
     new THREE.Vector3(12, -13, 19),
     new THREE.Vector3(10, -30, 32),
-    new THREE.Vector3(32, -5, 45),
+    new THREE.Vector3(38, -7, 22),
 ];
 
 const cameraLookAt = [
@@ -23,7 +23,7 @@ const cameraLookAt = [
     new THREE.Vector3(-1, -6, 0),
     new THREE.Vector3(8, -7, 0),
     new THREE.Vector3(1, -14, 0),
-    new THREE.Vector3(0, -3, 0),
+    new THREE.Vector3(0, -7, 0),
 ];
 
 const cameraRotationZ = [
