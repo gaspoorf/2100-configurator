@@ -59,25 +59,33 @@ export default function App() {
     if (socket) {
       socket.disconnect();
       setSocket(null);
-      console.log("❌ Déconnecté du Socket et quitté la session");
+      console.log("Déconnecté du Socket et quitté la session");
     }
-    setCurrentView('home');
-    setRoomId(null);
-    setUserName(null);
+    if (global.location) {
+      global.location.reload();
+    }
   };
 
   useEffect(() => {
     if (roomId && !socket) {
-        console.log("🔄 Initialisation du Socket...");
+        console.log("Initialisation du Socket...");
         const newSocket = io(SOCKET_URL, {
             autoConnect: true,
         });
 
         newSocket.on("connect", () => {
-            console.log("✅ Socket.io connecté (depuis App)");
+            console.log("Socket.io connecté (depuis App)");
             newSocket.emit("join-room", roomId);
-            console.log(`📍 Rejoint la room: ${roomId}`);
+            console.log(`Rejoint la room: ${roomId}`);
         });
+
+        if (userName) {
+          newSocket.emit("user-joined", {
+            roomId,
+            userName,
+          });
+          console.log("Username envoyé:", userName);
+        }
 
         setSocket(newSocket);
 
@@ -156,11 +164,12 @@ export default function App() {
           </View>
 
       case 'configurator':
+        if (!userName || !roomId || !socket) return null;
         return <View style={styles.container}>
             <TouchableOpacity style={styles.button} onPress={leaveSession}><Image source={require("../../assets/icons/leave.png")} style={styles.leaveIcon} /><Text style={styles.buttonText}>Quitter la session</Text></TouchableOpacity>
             <View style={styles.componentContainer}>
               <ImageBackground source={require("../../assets/img/bg.png")} resizeMode="cover" style={styles.componentContainer}>
-              <Configurator userName={userName} roomId={roomId} socket={socket} isModelAppear={isModelAppear}/>
+              <Configurator key={roomId} userName={userName} roomId={roomId} socket={socket} isModelAppear={isModelAppear}/>
             </ImageBackground>
             </View>
           </View>

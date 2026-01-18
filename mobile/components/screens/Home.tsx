@@ -12,8 +12,6 @@ export default function Home({ onStart }: Props) {
 
     const handlePress = () => {
         setShowLogo(false);
-
-        // durée = celle de FadeOutUp
         setTimeout(() => {
             onStart();
         }, 500);
@@ -23,10 +21,14 @@ export default function Home({ onStart }: Props) {
         <View style={styles.container}>
             <Pressable  style={styles.btnContainer} onPress={handlePress}>
 
-            <Image
-                source={require("../../assets/img/stickers/top-stick.png")}
-                style={styles.imageTop}
-            />
+            {showLogo && (
+                <Animated.Image
+                    entering={FadeInDown.duration(500)}
+                    exiting={FadeOutUp.duration(500)}
+                    source={require("../../assets/img/stickers/top-stick.png")}
+                    style={styles.imageTop}
+                />
+            )}
 
             {showLogo && (
                 <Animated.View
@@ -41,10 +43,14 @@ export default function Home({ onStart }: Props) {
                 </Animated.View>
             )}
         
-            <Image
-                source={require("../../assets/img/stickers/bottom-stick.png")}
-                style={styles.imageBtm}
-            />
+            {showLogo && (
+                <Animated.Image
+                    entering={FadeInDown.duration(500)}
+                    exiting={FadeOutUp.duration(500)}
+                    source={require("../../assets/img/stickers/bottom-stick.png")}
+                    style={styles.imageBtm}
+                />
+            )}
 
             </Pressable>
         </View>

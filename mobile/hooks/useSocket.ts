@@ -5,7 +5,7 @@ type ConfiguratorValues = {
     plane: number;
     transport: any;
     promptIA: number;
-    meat: boolean;
+    meat: number;
     products: number;
     phone: any;
     energy: number;
@@ -137,6 +137,11 @@ export function useConfiguratorSocket(
         }, [emit]
     );
 
+    const sendResetData = useCallback(() => {
+        emit({ type: "RESET_DATA" });
+        console.log("RESET_DATA envoyé");
+    }, [emit]);
+
     return {
         isConnected,
         resultData,
@@ -148,5 +153,6 @@ export function useConfiguratorSocket(
         sendCloseResult,
         sendShowExplanations,
         sendChangeQuestion,
+        sendResetData,
     };
 }

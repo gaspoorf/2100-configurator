@@ -7,6 +7,8 @@ import Animated, {
   useAnimatedStyle, 
   withSpring, 
   withTiming,
+  FadeIn, 
+  FadeOut,
   interpolateColor,
   useDerivedValue
 } from 'react-native-reanimated';
@@ -26,8 +28,8 @@ const ONBOARDING_STEPS = [
 const PaginationDot = ({ isActive }: { isActive: boolean }) => {
   const rStyle = useAnimatedStyle(() => {
     return {
-      width: withSpring(isActive ? 24 : 5, { damping: 15, stiffness: 100 }),
-      backgroundColor: withTiming(isActive ? '#000000' : '#908F8C', { duration: 100 }), 
+      width: withSpring(isActive ? 24 : 5, { damping: 10, stiffness: 50 }),
+      backgroundColor: withTiming(isActive ? '#000000' : '#908F8C', { duration: 50 }), 
     };
   }, [isActive]);
   return <Animated.View style={[styles.dot, rStyle]} />;
@@ -79,8 +81,8 @@ export default function Onboarding({ userName, onComplete }: Props) {
           <Animated.Text 
           key={step}
           style={styles.description}
-          entering={BounceIn.delay(500).duration(500)}
-          exiting={BounceOut.duration(500)}
+          entering={FadeIn.delay(300).duration(300)}
+          exiting={FadeOut.duration(300)}
           >
             {currentContent.description}
           </Animated.Text>
@@ -89,7 +91,7 @@ export default function Onboarding({ userName, onComplete }: Props) {
 
 
       {showContent && (
-        <Animated.View style={styles.videoContainer} entering={BounceIn.delay(500).duration(500)} exiting={BounceOut.duration(500)}>
+        <Animated.View style={styles.videoContainer} entering={FadeIn.delay(300).duration(300)} exiting={FadeOut.duration(300)}>
           <Video
             style={styles.video}
             ref={video}

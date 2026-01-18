@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
-import Animated, { BounceIn, BounceOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 
 type Props = {
@@ -26,51 +26,58 @@ export default function Name({ onComplete }: Props) {
   };
 
   return (
+    
     <View style={styles.container}>
 
-      <Text style={styles.description}>{ONBOARDING_STEPS[step].description}</Text>
-
- 
-      <TextInput
-        style={styles.input}
-        placeholder="Entrer un nom"
-        value={userName}
-        onChangeText={setUserName}
-        placeholderTextColor="#00000050" 
-      />
-
       {showContent && (
-        <Animated.View style={styles.videoContainer} entering={BounceIn.delay(500).duration(500)} exiting={BounceOut.duration(500)}>
-          <Video
-            style={styles.video}
-            ref={video}
-            source={require('../../assets/videos/dance.mp4')}
-            isLooping={true}
-            isMuted={true}
-            shouldPlay={true}
-            resizeMode={ResizeMode.COVER}
-            useNativeControls={false}
-          />
-        </Animated.View >
-      )}
-      
+        <Animated.View entering={FadeIn.duration(300)} exiting={FadeOut.duration(300)} style={styles.container}>
+          
 
-      <TouchableOpacity
-        style={[
-          styles.button,
-          !userName && step === 0 && styles.buttonDisabled,
-        
-        ]}
-        onPress={handleNext}
-        disabled={step === 0 && !userName}
-      >
-        <Image
-          source={require("../../assets/icons/arrow.png")}
-          style={styles.buttonArrow}
-        />
-      </TouchableOpacity>
-    </View>
-  );
+          <Text style={styles.description}>{ONBOARDING_STEPS[step].description}</Text>
+
+  
+          <TextInput
+            style={styles.input}
+            placeholder="Entrer un nom"
+            value={userName}
+            onChangeText={setUserName}
+            placeholderTextColor="#00000050" 
+          />
+
+          {showContent && (
+            <Animated.View style={styles.videoContainer} entering={FadeIn.delay(300).duration(300)} exiting={FadeOut.duration(300)}>
+              <Video
+                style={styles.video}
+                ref={video}
+                source={require('../../assets/videos/dance.mp4')}
+                isLooping={true}
+                isMuted={true}
+                shouldPlay={true}
+                resizeMode={ResizeMode.COVER}
+                useNativeControls={false}
+              />
+            </Animated.View >
+          )}
+      
+          </Animated.View>
+        )}
+
+        <TouchableOpacity
+          style={[
+            styles.button,
+            !userName && step === 0 && styles.buttonDisabled,
+          
+          ]}
+          onPress={handleNext}
+          disabled={step === 0 && !userName}
+        >
+          <Image
+            source={require("../../assets/icons/arrow.png")}
+            style={styles.buttonArrow}
+          />
+        </TouchableOpacity>
+      </View>
+    );
 }
 
 const styles = StyleSheet.create({

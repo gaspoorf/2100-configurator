@@ -1,7 +1,7 @@
 import { useCameraPermissions, CameraView } from "expo-camera";
 import { useEffect, useState } from "react";
 import { View, StyleSheet, Text, Image, Pressable, StatusBar, Platform } from "react-native";
-import Animated, { BounceIn, BounceOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 type Props = {
     onComplete: (roomId: string) => void;
@@ -9,7 +9,7 @@ type Props = {
 
 export default function QRScan({ onComplete }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
-  const isGranted = Boolean(permission?.granted);
+
   const [showContent, setShowContent] = useState(true);
 
   useEffect(() => {
@@ -17,6 +17,13 @@ export default function QRScan({ onComplete }: Props) {
       requestPermission();
     }
   }, [permission]);
+
+  const isGranted = Boolean(permission?.granted);
+
+
+  if (!permission) {
+    return <View style={styles.container} />;
+  }
 
   const handleScan = ({ data }: { data: string }) => {
     if (!data || !showContent) return;
@@ -41,8 +48,8 @@ export default function QRScan({ onComplete }: Props) {
             <Animated.Image
               source={require("../../assets/icons/2100-logo.png")}
               style={styles.image}
-              entering={BounceIn.delay(0).duration(500)}
-              exiting={BounceOut.duration(500)}
+              entering={FadeIn.delay(0).duration(300)}
+              exiting={FadeOut.duration(300)}
             />
           )}
           
@@ -59,8 +66,8 @@ export default function QRScan({ onComplete }: Props) {
           {showContent && (
             <Animated.Text 
               style={styles.info}
-              entering={BounceIn.delay(500).duration(500)}
-              exiting={BounceOut.duration(500)}
+              entering={FadeIn.delay(300).duration(300)}
+              exiting={FadeOut.duration(300)}
             >
               Rends-toi sur 2100.fr et scan le QR Code
             </Animated.Text>

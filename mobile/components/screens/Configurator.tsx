@@ -1,4 +1,4 @@
-import React, { useState, Suspense, useRef, useCallback } from "react";
+import React, { useState, useEffect, Suspense, useRef, useCallback } from "react";
 import { View, Image, Text, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
 import * as THREE from "three";
 import {  Socket } from "socket.io-client";
@@ -14,6 +14,7 @@ import Animated, {
     FadeOutUp, 
     FadeInDown, 
     FadeIn,
+    FadeOut,
     ZoomIn,
     useAnimatedStyle,
     withSpring,
@@ -26,6 +27,7 @@ import Animated, {
 // Sensor 
 import { Accelerometer } from 'expo-sensors';
 import type { EventSubscription } from 'expo-modules-core';
+
 
 
 type Props = {
@@ -63,14 +65,49 @@ const getRankImage = (rankPath: string) => {
 
 
 export default function App({ userName, roomId, socket, onTransitionEnd, isModelAppear  }: Props) {
-    const [plane, setPlane] = useState(10);
-    const [transport, setTransport] = useState<"100" | "50" | "0" | 0>(0);
-    const [promptIA, setPromptIA] = useState<0 | 50 | 100>(0);
-    const [energy, setEnergy] = useState<0 | 33 | 66 | 100>(0);
-    const [meat, setMeat] = useState(false);
-    const [products, setProducts] = useState(5);
-    const [phone, setPhone] = useState<"IPhone 17" | "Nokia 3310"| 0>(0);
-    const [clothes, setClothes] = useState(5);
+    // const [plane, setPlane] = useState(10);
+    // const [transport, setTransport] = useState<"100" | "50" | "0" | 0>(0);
+    // const [promptIA, setPromptIA] = useState<0 | 50 | 100>(0);
+    // const [energy, setEnergy] = useState<0 | 33 | 66 | 100>(0);
+    // const [meat, setMeat] = useState(false);
+    // const [products, setProducts] = useState(5);
+    // const [phone, setPhone] = useState<"IPhone 17" | "Nokia 3310"| 0>(0);
+    // const [clothes, setClothes] = useState(5);
+
+
+    type ConfiguratorState = {
+        plane: number;
+        transport: 0 | 50 | 100;
+        promptIA: 0 | 50 | 100;
+        energy: 0 | 33 | 66 | 100;
+        meat: 0 | 100;
+        products: number;
+        phone: 0 | 100;
+        clothes: number;
+    };
+
+    const INITIAL_STATE: ConfiguratorState = {
+        plane: 0,
+        transport: 0,
+        promptIA: 0,
+        energy: 0,
+        meat: 0,
+        products: 0,
+        phone: 0,
+        clothes: 0,
+    };
+
+
+    const [plane, setPlane] = useState(INITIAL_STATE.plane);
+    const [transport, setTransport] = useState<typeof INITIAL_STATE.transport>(INITIAL_STATE.transport);
+    const [promptIA, setPromptIA] = useState<0 | 50 | 100>(INITIAL_STATE.promptIA);
+    const [energy, setEnergy] = useState<0 | 33 | 66 | 100>(INITIAL_STATE.energy);
+    const [meat, setMeat] = useState<0 | 100>(INITIAL_STATE.meat);
+    const [products, setProducts] = useState(INITIAL_STATE.products);
+    const [phone, setPhone] = useState<0 | 100>(INITIAL_STATE.phone);
+    const [clothes, setClothes] = useState(INITIAL_STATE.clothes);
+
+
 
     const [isModelAppearDone, setIsModelAppearDone] = useState(false);
 
@@ -83,7 +120,16 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
     const [camIndex, setCamIndex] = useState(0);
 
     const [activeQuestion, setActiveQuestion] = useState<number | null>(null);
+    const [isResetPopupVisible, setIsResetPopupVisible] = useState(false);
+    const [localIsModelAppear, setLocalIsModelAppear] = useState(false);
 
+    useEffect(() => {
+        if (isModelAppear && !localIsModelAppear) {
+            setTimeout(() => {
+                setLocalIsModelAppear(true);
+            }, 100);
+        }
+    }, [isModelAppear, localIsModelAppear]);
 
     const {
         isConnected,
@@ -96,6 +142,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
         sendCloseResult,
         sendShowExplanations,
         sendChangeQuestion,
+        sendResetData,
         } = useConfiguratorSocket(socket, roomId, {
         plane,
         transport,
@@ -108,13 +155,12 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
     });
 
 
-
     // Handlers
     const handlePlaneChange = useCallback((v: number) => {
         setPlane(v);
     }, []);
 
-    const handleTransportChange = useCallback((v: any) => {
+    const handleTransportChange = useCallback((v: 0 | 50 | 100) => {
         setTransport(v);
     }, []);
 
@@ -122,15 +168,15 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
         setPromptIA(prev => prev === 0 ? 50 : prev === 50 ? 100 : 0);
     }, []);
 
-    const toggleMeat = useCallback(() => {
-        setMeat(prev => !prev);
+    const handleMeatChange = useCallback(() => {
+        setMeat(prev => (prev === 0 ? 100 : 0));
     }, []);
 
     const handleProductsChange = useCallback((v: number) => {
         setProducts(v);
     }, []);
 
-    const handlePhoneChange = useCallback((v: any) => {
+    const handlePhoneChange = useCallback((v: 0 | 100) => {
         setPhone(v);
     }, []);
 
@@ -157,12 +203,12 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
     const getQuestionText = () => {
         switch (currentStep) {
             case 0: return `À quelle fréquence ${userName} prend l'avion ? ${Math.round(plane)}`;
-            case 1: return `Comment ${userName} se déplace au quotidien ?`;
+            case 1: return `Comment ${userName} se déplace au quotidien ? ${transport}`;
             case 2: return `À quelle fréquence ${userName} utilise l'Intelligence Artificielle ? ${promptIA}`;
-            case 3: return `${userName} mange beaucoup de viande ?`;
-            case 4: return `${userName} mange local ? Ou ses produits ont fait 3x le tour du globe avant d'arriver dans son assiette ?`;
-            case 5: return `${userName} s'équipe d'un IPhone 17, ou se contente d'un Nokia 3310 ?`;
-            case 6: return `À quelle température ${userName} chauffe son logement ?`;
+            case 3: return `${userName} mange beaucoup de viande ? ${meat}`;
+            case 4: return `${userName} mange local ? Ou ses produits ont fait 3x le tour du globe avant d'arriver dans son assiette ? ${Math.round(products)}`;
+            case 5: return `${userName} s'équipe d'un IPhone 17, ou se contente d'un Nokia 3310 ? ${phone}`;
+            case 6: return `À quelle température ${userName} chauffe son logement ? ${energy}`;
             case 7: return `À quelle fréquence ${userName} achète des vêtements ? ${Math.round(clothes)}`;
             default: return "Configuration terminée";
         }
@@ -190,13 +236,46 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
         setResultIsShown(false);
     };
 
+    const handleResetClick = () => {
+        setIsResetPopupVisible(true);
+    };
+
+    const closeResetPopup = () => {
+        setIsResetPopupVisible(false);
+    };
+    
+
+    const resetConfiguration = () => {
+        setPlane(INITIAL_STATE.plane);
+        setTransport(INITIAL_STATE.transport);
+        setPromptIA(INITIAL_STATE.promptIA);
+        setEnergy(INITIAL_STATE.energy);
+        setMeat(INITIAL_STATE.meat);
+        setProducts(INITIAL_STATE.products);
+        setPhone(INITIAL_STATE.phone);
+        setClothes(INITIAL_STATE.clothes);
+        setCurrentStep(0);
+        setCamIndex(0);
+        setIsModelTurned(false);
+        setResultIsShown(false);
+        setFeedbackIsShown(false);
+        setActiveQuestion(null);
+        setIsModelAppearDone(true);
+        setLocalIsModelAppear(false);
+
+        setTimeout(() => setLocalIsModelAppear(true), 50);
+
+        setIsResetPopupVisible(false);
+        sendResetData();
+    };
+
     return (
         <View style={styles.container}>
-            {!isModelTurned && isModelAppearDone &&(
+            {!isModelTurned && localIsModelAppear &&(
                 <Animated.View
                     // SlideInDown
-                    entering={FadeInDown.duration(500)}
-                    exiting={FadeOutUp.duration(500)}
+                    entering={FadeInDown.duration(300).delay(1000)}
+                    exiting={FadeOutUp.duration(300)}
                     style={styles.animatedHeaderContainer}
                 >
                     <LinearGradient
@@ -210,8 +289,10 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                 </Animated.View>
             )}
 
-            <Image
-                source={require("../../assets/img/hero.png")}
+            <Animated.Image
+                entering={FadeIn.duration(300).delay(5000)}
+                exiting={FadeOut.duration(300)}
+                source={require("../../assets/img/hero-return.png")}
                 style={styles.image}
             />
 
@@ -227,7 +308,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             transport={transport}
                             onTransportChange={handleTransportChange}
                             meat={meat}
-                            onMeatChange={toggleMeat}
+                            onMeatChange={handleMeatChange}
                             promptIA={promptIA}
                             onPromptIAChange={togglePromptIA}
                             products={products}
@@ -238,7 +319,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             onEnergyChange={toggleEnergy}
                             clothes={clothes}
                             onClothesChange={handleClothesChange}
-                            isModelAppear={isModelAppear}
+                            isModelAppear={localIsModelAppear}
                             onAppearFinished={() => {
                                 setIsModelAppearDone(true);
                             }}
@@ -248,6 +329,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             onReveal={sendReveal}
                             onCameraMovement={sendCameraMovement}
                             onYearChange={sendYearTarget}
+                            onResetClick={handleResetClick}
                         />
 
                     </Suspense>
@@ -338,9 +420,8 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
 
 
                 </Animated.View>
-            )}
-
-
+            )}           
+           
             {isModelTurned && resultIsShown && (
                 <Animated.View entering={FadeIn.duration(400)} exiting={FadeOutUp.duration(300)} style={styles.ResultsPanel}>
 
@@ -541,6 +622,25 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             {isModelTurned && (feedbackIsShown || resultIsShown) && (
                 <Animated.View entering={FadeIn.duration(300)} exiting={FadeOutUp.duration(200)} style={styles.overlay} />
             )}
+
+            {/* Reset Popup */}
+            {isResetPopupVisible && (
+                <Animated.View style={styles.popupContainer} entering={FadeIn.duration(300)} exiting={FadeOut.duration(200)}>
+                    <Animated.View style={styles.popupContent} entering={FadeIn.duration(300)} exiting={FadeOutUp.duration(200)}>
+                        <Text style={styles.popupText}>On fait comme si rien ne s'était passé ?</Text>
+                        <Text style={styles.popupDescription}>La planète n'aura aucun souvenir de ce que tu viens de répondre. </Text>
+
+                        <View style={styles.popupButtons}>
+                            <TouchableOpacity onPress={() => { closeResetPopup() ; resetConfiguration(); }} style={styles.popupButton}>
+                                <Text style={styles.popupButtonText}>Oui, on recommence</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={closeResetPopup} style={styles.popupCloseButton}>
+                                <Text style={styles.popupButtonText}>Oups, finalement non</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Animated.View>
+                </Animated.View>
+            )}
         </View>
     );
 }
@@ -587,7 +687,6 @@ const styles = StyleSheet.create({
     image: {
         width: 250,
         height: 250,
-        transform: [{ scale: -1 }],
         position: "absolute",
         top: -123,
         zIndex: 2,
@@ -669,7 +768,7 @@ const styles = StyleSheet.create({
         margin: 0,
         position: "absolute",
         top: 0,
-        zIndex: 10,
+        zIndex: 10,        
     },
     buttonText: {
         fontSize: 14,
@@ -763,7 +862,80 @@ const styles = StyleSheet.create({
         bottom: 0,
         backgroundColor: "rgba(0, 0, 0, 0.4)",
         zIndex: 1,
-    }
+    },
+    popupContainer: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 3,
+    },
+    popupContent: {
+        width: "80%",
+        backgroundColor: "white",
+        borderRadius: 24,
+        paddingTop: 40,
+        paddingBottom: 32,
+        paddingHorizontal: 24,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    popupText: {
+        fontSize: 24,
+        color: "#17161D",
+        textAlign: "center",
+        marginBottom: 20,
+        lineHeight: 26.4,
+        fontFamily: "MillingTrial",
+    },
+    popupDescription: {
+        fontSize: 14,
+        textAlign: "center",
+        color: "#908F8C",
+        letterSpacing: -0.28,
+        marginBottom: 30,
+    },
+    popupButtons: {
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 16,
+        width: "100%",
+    },
+    popupButton: {
+        backgroundColor: '#ffffff',
+        paddingVertical: 24,
+        paddingHorizontal: 27,
+        borderRadius: 100,
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOpacity: 0.15,
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowRadius: 3.84,
+        width: '100%',
+        height: 64,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    popupCloseButton: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#000000',
+    },
+    popupButtonText: {
+        fontSize: 16,
+        color: "#17161D",
+    },
 });
 
 
