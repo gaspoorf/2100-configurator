@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import Animated, { BounceIn, BounceOut } from 'react-native-reanimated';
 
@@ -9,7 +9,7 @@ type Props = {
 };
 
 const ONBOARDING_STEPS = [
-  { title: "Étape 1", description: "Comment s'appelle votre héro ?" },
+  { title: "Étape 1", description: "Comment s'appelle votre héros ?" },
 ];
 
 export default function Name({ onComplete }: Props) {
@@ -28,17 +28,16 @@ export default function Name({ onComplete }: Props) {
   return (
     <View style={styles.container}>
 
-      <Text>{ONBOARDING_STEPS[step].description}</Text>
+      <Text style={styles.description}>{ONBOARDING_STEPS[step].description}</Text>
 
  
-        <TextInput
-          style={styles.input}
-          placeholder="Entrer un nom"
-          value={userName}
-          onChangeText={setUserName}
-          placeholderTextColor="#00000050" 
-        />
-
+      <TextInput
+        style={styles.input}
+        placeholder="Entrer un nom"
+        value={userName}
+        onChangeText={setUserName}
+        placeholderTextColor="#00000050" 
+      />
 
       {showContent && (
         <Animated.View style={styles.videoContainer} entering={BounceIn.delay(500).duration(500)} exiting={BounceOut.duration(500)}>
@@ -65,9 +64,10 @@ export default function Name({ onComplete }: Props) {
         onPress={handleNext}
         disabled={step === 0 && !userName}
       >
-        <Text style={styles.buttonText}>
-          {'→'}
-        </Text>
+        <Image
+          source={require("../../assets/icons/arrow.png")}
+          style={styles.buttonArrow}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -75,12 +75,15 @@ export default function Name({ onComplete }: Props) {
 
 const styles = StyleSheet.create({
   container: { 
+    flex: 1, 
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     backgroundColor: '#F4F3EF',
-    height: '100%',
-    padding: 17,
+    padding: 0,
+    paddingTop: 120,
+    justifyContent: 'space-between',
+    gap: 20,
   },
   content: { 
     alignItems: 'center', 
@@ -89,13 +92,12 @@ const styles = StyleSheet.create({
   },
   description: { 
     textAlign: 'center', 
-    fontSize: 24, 
-    fontWeight: '700', 
-    color: '#000',
-
-    textShadowColor: 'rgba(255, 255, 255, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    fontSize: 14, 
+    fontWeight: '500', 
+    color: '#17161D',
+    padding: 0,
+    letterSpacing: -0.28,
+    fontFamily: 'OpenRundeMedium',
   },
   button: { 
     backgroundColor: '#ffffff', 
@@ -113,6 +115,8 @@ const styles = StyleSheet.create({
     shadowColor: '#000', 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
+    width: 64,
+    height: 64,
   },
   buttonDisabled: { 
     backgroundColor: '#ccc',
@@ -129,35 +133,44 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     bottom: 50,
   },
+  buttonArrow: {
+    transform: [{ scale: 0.2 }],
+  },
   buttonText: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#000' 
+    fontSize: 14,
+    color: '#17161D',
+    fontFamily: 'OpenRundeMedium',
+    letterSpacing: -0.28, 
   },
   input: { 
-    borderColor: '#000', 
-    padding: 10, 
+    padding: 0, 
     width: '100%', 
-    marginTop: 20, 
-    fontSize: 34, 
-    fontWeight: '700', 
-    color: '#000', 
+    marginTop: 0, 
+    fontSize: 30, 
+    fontWeight: '200', 
+    color: '#17161D', 
     textAlign: "center",
     zIndex: 1,
+    fontFamily: 'MillingTrial',
+    letterSpacing: 0.6,
   },
   videoContainer:{
-    flex: 2, 
+    flex: 1, 
     alignItems: 'center', 
     padding: 0, 
     paddingVertical: 0,
     position: 'relative',
+    width: '100%',
+    height: '100%',
     bottom: 0,
   },
   video: {
     bottom: 0,
     position: 'absolute', 
-    width: '130%',
+    width: '100%',
     height: '100%',
     zIndex: 0, 
+    margin: 0, 
+    padding: 0,
   },
 });

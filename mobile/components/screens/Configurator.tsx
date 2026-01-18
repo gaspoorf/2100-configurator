@@ -9,7 +9,18 @@ import { Model } from "@/components/three/Model";
 import { CameraController, CAMERA_COUNT  } from "@/components/three/CameraController";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useConfiguratorSocket } from "@/hooks/useSocket";
-import Animated, { SlideInDown, FadeOutUp, FadeInDown } from 'react-native-reanimated';
+import Animated, { 
+    SlideInDown, 
+    FadeOutUp, 
+    FadeInDown, 
+    FadeIn,
+    ZoomIn,
+    useAnimatedStyle,
+    withSpring,
+    withDelay,
+    withSequence,
+    withTiming
+} from 'react-native-reanimated';
 
 
 // Sensor 
@@ -29,6 +40,25 @@ type Props = {
 const { width, height } = Dimensions.get("window");
 
 
+const getRankImage = (rankPath: string) => {
+    const filename = rankPath.split('/').pop();
+    
+    switch(filename) {
+        case 'rank-a.png':
+            return require("../../assets/icons/rank-a.png");
+        case 'rank-b.png':
+            return require("../../assets/icons/rank-b.png");
+        case 'rank-c.png':
+            return require("../../assets/icons/rank-c.png");
+        case 'rank-d.png':
+            return require("../../assets/icons/rank-d.png");
+        case 'rank-e.png':
+            return require("../../assets/icons/rank-e.png");
+        case 'rank-f.png':
+        default:
+            return require("../../assets/icons/rank-f.png");
+    }
+};
 
 
 
@@ -52,10 +82,12 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
     const steps = ["Avion", "Transport", "Prompt IA", "Viande", "Produits", "Téléphone", "Energie", "Vêtements"];
     const [camIndex, setCamIndex] = useState(0);
 
+    const [activeQuestion, setActiveQuestion] = useState<number | null>(null);
 
 
     const {
         isConnected,
+        resultData,
         sendReveal,
         sendValidateForm,
         sendCameraMovement,
@@ -109,6 +141,11 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
     const handleClothesChange = useCallback((v: number) => {
         setClothes(v);
     }, []);
+
+    const handleQuestionClick = (index: number) => {
+        setActiveQuestion(index);
+        sendChangeQuestion(index);
+    };
 
     // Nav
     const nextStep = () => { if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1); };
@@ -222,20 +259,30 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                 <View style={styles.buttons}>
                     {currentStep > 0 && (
                         <TouchableOpacity onPress={() => { prevCam(); prevStep(); setIsModelTurned(false) }} style={styles.button}>
-                            <Text style={styles.buttonText}>←</Text>
+                            <Image
+                                source={require("../../assets/icons/arrow.png")}
+                                style={[styles.buttonArrow, { transform: [{ rotate: '180deg'}, { scale: 0.2 }] }]}
+                            />
                         </TouchableOpacity>
                     )}
                     {currentStep < steps.length - 1 && (
                         <TouchableOpacity onPress={() => { nextCam(); nextStep(); }} style={styles.button}>
-                            <Text style={styles.buttonText}>→</Text>
+                            <Image
+                                source={require("../../assets/icons/arrow.png")}
+                                style={styles.buttonArrow}
+                            />
                         </TouchableOpacity>
                     )}
                     {currentStep === steps.length - 1 && (
-                        <TouchableOpacity onPress={handleFinish} style={styles.button}>
-                            <Text style={styles.buttonText}>Terminer</Text>
+                        <TouchableOpacity onPress={handleFinish} style={[styles.button, { width: 'auto', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 0 }]} >
+                            <Text style={styles.buttonText}>Découvrir le monde</Text> 
+                            <Image
+                                source={require("../../assets/icons/stars.png")}
+                                style={styles.buttonStars}
+                            />
                         </TouchableOpacity>
                     )}
-                </View>
+                </View> 
             )}
 
 
@@ -243,114 +290,256 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             {isModelTurned && (
                 <View style={styles.buttons}>
                     {currentStep === steps.length - 1 && (
-                        <TouchableOpacity onPress={() => { handleFeedbacks(); sendShowResult(); }} style={styles.button}>
-                            <Text style={styles.buttonText}>Voir le résultat</Text>
+                        <TouchableOpacity onPress={() => { handleFeedbacks(); sendShowResult(); }} style={[styles.button, { width: 'auto'}]}>
+                            <Text style={styles.buttonText}>Voir le résultat de {userName}</Text>
                         </TouchableOpacity>
                     )}
                 </View>
             )}
 
             {isModelTurned && feedbackIsShown && (
-                <View style={styles.ResultsPanel}>
+                <Animated.View entering={FadeIn.duration(400)} exiting={FadeOutUp.duration(300)} style={styles.ResultsPanel}>
 
                     <TouchableOpacity onPress={() => { closeResult(); sendCloseResult(); }} style={[styles.button, styles.buttonClose]}>
-                        <Text style={styles.buttonText}>X</Text>
-                    </TouchableOpacity>
-
-                    <Text>Score : F</Text>
-                    <Text>$Name n'est pas vraiment protecteur de la planete</Text>
-
-                  
-
-
-                    <TouchableOpacity onPress={() => { handleResult(); sendShowExplanations(); }} style={styles.button}>
-                        <Text style={styles.buttonText}>Comprendre ses erreurs</Text>
-                    </TouchableOpacity>
-
-                    <View style={styles.imageResultsContainer}>
                         <Image
-                            source={require("../../assets/img/hero.png")}
-                            style={styles.imageResults}
+                            source={require("../../assets/icons/close.png")}
+                            style={styles.buttonCloseIcon}
                         />
+                    </TouchableOpacity>
+
+                    <View style={{overflow: 'hidden', flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20}}>
+
+                        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{flexDirection: 'column', alignItems: 'center', marginTop: 70, gap: 0}}>
+                            <Animated.Image
+                                entering={FadeInDown.delay(150).duration(350)}
+                                source={getRankImage(resultData?.rank || '/icons/rank-f.png')}
+                                style={{ width: 90, height: 90, transform: [{ rotate: '-8.8deg' }], }}
+                                resizeMode="contain"
+                            />
+                            <Animated.Text entering={FadeInDown.delay(250).duration(400)} style={styles.feedbackText}>
+                                {resultData?.text ? resultData.text.replace('%Name', userName) : `Données indisponibles pour le moment`}
+                            </Animated.Text>
+                        </Animated.View>
+                    
+                        <Animated.View entering={FadeInDown.delay(500).springify()} style={styles.buttonExplanations}>
+                            <TouchableOpacity onPress={() => { handleResult(); sendShowExplanations(); }} style={[styles.button, { width: 'auto'}]}>
+                                <Text style={styles.buttonText}>Comprendre ses erreurs</Text>
+                            </TouchableOpacity>
+                        </Animated.View>
+
+                        <Animated.View entering={FadeIn.delay(300)} style={styles.imageResultsContainer}>
+                            <Image
+                                source={require("../../assets/img/hero.png")}
+                                style={styles.imageResults}
+                            />
+                        </Animated.View>
                     </View>
 
-                </View>
+
+
+                </Animated.View>
             )}
 
 
             {isModelTurned && resultIsShown && (
-                <View style={styles.ResultsPanel}>
+                <Animated.View entering={FadeIn.duration(400)} exiting={FadeOutUp.duration(300)} style={styles.ResultsPanel}>
 
                     <TouchableOpacity onPress={() => { closeResult(); sendCloseResult(); }} style={[styles.button, styles.buttonClose]}>
-                        <Text style={styles.buttonText}>X</Text>
+                        <Image
+                            source={require("../../assets/icons/close.png")}
+                            style={styles.buttonCloseIcon}
+                        />
                     </TouchableOpacity>
                 
-                    <View style={styles.questionsRow}>
-                        <TouchableOpacity onPress={() => sendChangeQuestion(0)} style={styles.button}>
-                            <Image
-                                source={require("../../assets/img/questions/plane.png")}
-                                style={styles.imageQuestion}
-                            />
+                    <Animated.View entering={FadeInDown.delay(100)} style={styles.questionsRow}>
+                        <View
+                            style={[
+                                styles.questionsContainer,
+                                activeQuestion === 0 && { opacity: 1 },
+                                activeQuestion !== 0 && { opacity: 0.7 },
+                            ]}
+                        >
+                            <TouchableOpacity
+                                onPress={() => handleQuestionClick(0)}
+                                style={[
+                                    styles.button,
+                                    styles.buttonQuestion,
+                                    activeQuestion === 0 && styles.buttonQuestionActive,
+                            ]}
+                            >
+                                <Image
+                                    source={require("../../assets/img/questions/plane.png")}
+                                    style={styles.imageQuestion}
+                                />
+                            </TouchableOpacity>
                             <Text style={styles.buttonText}>Question 1</Text>
-                        
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => sendChangeQuestion(1)} style={styles.button}>
-                            <Image
-                                source={require("../../assets/img/questions/transports.png")}
-                                style={styles.imageQuestion}
-                            />
+                        </View>
+                        <View
+                            style={[
+                                styles.questionsContainer,
+                                activeQuestion === 1 && { opacity: 1 },
+                                activeQuestion !== 1 && { opacity: 0.7 },
+                            ]}
+                        >
+                            <TouchableOpacity
+                                onPress={() => handleQuestionClick(1)}
+                                style={[
+                                    styles.button,
+                                    styles.buttonQuestion,
+                                    activeQuestion === 1 && styles.buttonQuestionActive,
+                            ]}
+                            >
+                                <Image
+                                    source={require("../../assets/img/questions/transports.png")}
+                                    style={styles.imageQuestion}
+                                />
+                            </TouchableOpacity>
                             <Text style={styles.buttonText}>Question 2</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.questionsRow}>
-                        <TouchableOpacity onPress={() => sendChangeQuestion(2)} style={styles.button}>
-                            <Image
-                                source={require("../../assets/img/questions/ia.png")}
-                                style={styles.imageQuestion}
-                            />
+                        </View>
+                    </Animated.View>
+                    <Animated.View entering={FadeInDown.delay(200)} style={styles.questionsRow}>
+                        <View
+                            style={[
+                                styles.questionsContainer,
+                                activeQuestion === 2 && { opacity: 1 },
+                                activeQuestion !== 2 && { opacity: 0.7 },
+                            ]}
+                        >
+                            <TouchableOpacity
+                                onPress={() => handleQuestionClick(2)}
+                                style={[
+                                    styles.button,
+                                    styles.buttonQuestion,
+                                    activeQuestion === 2 && styles.buttonQuestionActive,
+                            ]}
+                            >
+                                <Image
+                                    source={require("../../assets/img/questions/ia.png")}
+                                    style={styles.imageQuestion}
+                                />
+                            </TouchableOpacity>
                             <Text style={styles.buttonText}>Question 3</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => sendChangeQuestion(3)} style={styles.button}>
-                            <Image
-                                source={require("../../assets/img/questions/meat.png")}
-                                style={styles.imageQuestion}
-                            />
+                        </View>
+                        <View
+                            style={[
+                                styles.questionsContainer,
+                                activeQuestion === 3 && { opacity: 1 },
+                                activeQuestion !== 3 && { opacity: 0.7 },
+                            ]}
+                        >
+                            <TouchableOpacity
+                                onPress={() => handleQuestionClick(3)}
+                                style={[
+                                    styles.button,
+                                    styles.buttonQuestion,
+                                    activeQuestion === 3 && styles.buttonQuestionActive,
+                            ]}
+                            >
+                                <Image
+                                    source={require("../../assets/img/questions/meat.png")}
+                                    style={styles.imageQuestion}
+                                />
+                            </TouchableOpacity>
                             <Text style={styles.buttonText}>Question 4</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.questionsRow}>
-                        <TouchableOpacity onPress={() => sendChangeQuestion(4)} style={styles.button}>
-                            <Image
-                                source={require("../../assets/img/questions/products.png")}
-                                style={styles.imageQuestion}
-                            />
+                        </View>
+                    </Animated.View>
+                    <Animated.View entering={FadeInDown.delay(300)} style={styles.questionsRow}>
+                        <View
+                            style={[
+                                styles.questionsContainer,
+                                activeQuestion === 4 && { opacity: 1 },
+                                activeQuestion !== 4 && { opacity: 0.7 },
+                            ]}
+                        >
+                            <TouchableOpacity
+                                onPress={() => handleQuestionClick(4)}
+                                style={[
+                                    styles.button,
+                                    styles.buttonQuestion,
+                                    activeQuestion === 4 && styles.buttonQuestionActive,
+                            ]}
+                            >
+                                <Image
+                                    source={require("../../assets/img/questions/products.png")}
+                                    style={styles.imageQuestion}
+                                />
+                            </TouchableOpacity>
                             <Text style={styles.buttonText}>Question 5</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => sendChangeQuestion(5)} style={styles.button}>
-                            <Image
-                                source={require("../../assets/img/questions/phone.png")}
-                                style={styles.imageQuestion}
-                            />
+                        </View>
+                        <View
+                            style={[
+                                styles.questionsContainer,
+                                activeQuestion === 5 && { opacity: 1 },
+                                activeQuestion !== 5 && { opacity: 0.7 },
+                            ]}
+                        >
+                            <TouchableOpacity
+                                onPress={() => handleQuestionClick(5)}
+                                style={[
+                                    styles.button,
+                                    styles.buttonQuestion,
+                                    activeQuestion === 5 && styles.buttonQuestionActive,
+                            ]}
+                            >
+                                <Image
+                                    source={require("../../assets/img/questions/phone.png")}
+                                    style={styles.imageQuestion}
+                                />
+                            </TouchableOpacity>
                             <Text style={styles.buttonText}>Question 6</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.questionsRow}>
-                        <TouchableOpacity onPress={() => sendChangeQuestion(6)} style={styles.button}>
-                            <Image
-                                source={require("../../assets/img/questions/energy.png")}
-                                style={styles.imageQuestion}
-                            />
+                        </View>
+                    </Animated.View>
+                    <Animated.View entering={FadeInDown.delay(400)} style={styles.questionsRow}>
+                        <View
+                            style={[
+                                styles.questionsContainer,
+                                activeQuestion === 6 && { opacity: 1 },
+                                activeQuestion !== 6 && { opacity: 0.7 },
+                            ]}
+                        >
+                            <TouchableOpacity
+                                onPress={() => handleQuestionClick(6)}
+                                style={[
+                                    styles.button,
+                                    styles.buttonQuestion,
+                                    activeQuestion === 6 && styles.buttonQuestionActive,
+                            ]}
+                            >
+                                <Image
+                                    source={require("../../assets/img/questions/energy.png")}
+                                    style={styles.imageQuestion}
+                                />
+                            </TouchableOpacity>
                             <Text style={styles.buttonText}>Question 7</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => sendChangeQuestion(7)} style={styles.button}>
-                            <Image
-                                source={require("../../assets/img/questions/clothes.png")}
-                                style={styles.imageQuestion}
-                            />
+                        </View>
+                        <View
+                            style={[
+                                styles.questionsContainer,
+                                activeQuestion === 7 && { opacity: 1 },
+                                activeQuestion !== 7 && { opacity: 0.7 },
+                            ]}
+                        >
+                            <TouchableOpacity
+                                onPress={() => handleQuestionClick(7)}
+                                style={[
+                                    styles.button,
+                                    styles.buttonQuestion,
+                                    activeQuestion === 7 && styles.buttonQuestionActive,
+                            ]}
+                            >
+                                <Image
+                                    source={require("../../assets/img/questions/clothes.png")}
+                                    style={styles.imageQuestion}
+                                />
+                            </TouchableOpacity>
                             <Text style={styles.buttonText}>Question 8</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                        </View>
+                    </Animated.View>
+                </Animated.View>
+            )}
+
+            {isModelTurned && (feedbackIsShown || resultIsShown) && (
+                <Animated.View entering={FadeIn.duration(300)} exiting={FadeOutUp.duration(200)} style={styles.overlay} />
             )}
         </View>
     );
@@ -410,12 +599,13 @@ const styles = StyleSheet.create({
         alignItems: 'center', 
         padding: 0, 
         paddingVertical: 0,
-        bottom: -60,
+        bottom: -35,
     },
+
     imageResults: {
         bottom: 0,
         position: 'absolute', 
-        width: '200%',
+        width: '180%',
         height: '100%',
         zIndex: 0, 
     },
@@ -428,10 +618,12 @@ const styles = StyleSheet.create({
         textAlign: "center"
     },
     label: {
-        color: "#000000",
         fontSize: 20,
         textAlign: "center",
-        fontWeight: "700"
+        fontWeight: 200,
+        color: "#17161D",
+        lineHeight: 21,
+        fontFamily: "MillingTrial",
     },
     buttons: {
         flexDirection: "row",
@@ -453,23 +645,44 @@ const styles = StyleSheet.create({
             width: 0,
             height: 2
         },
-        shadowRadius: 3.84
+        shadowRadius: 3.84,
+        width: 64,
+        height: 64,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    buttonArrow: {
+        transform: [{ scale: 0.2 }],
+    },
+    buttonStars: {
+        transform: [{ scale: 0.2 }],
+        padding: 0,
+        margin: 0,
+    },
+    buttonCloseIcon: {
+        transform: [{ scale: 0.3 }],
+        padding: 0,
+        margin: 0,
+    },
+    buttonClose: {
+        padding: 0,
+        margin: 0,
+        position: "absolute",
+        top: 0,
+        zIndex: 10,
     },
     buttonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#000'
-    },
-
-    buttonClose: {
-        position: "absolute",
-        top: 20,
-        margin : "auto",
-        zIndex: 3,
+        fontSize: 14,
+        color: '#17161D',
+        fontFamily: 'OpenRundeMedium',
+        letterSpacing: -0.28,
+        padding: 0,
+        margin: 0,
+        lineHeight: 16,
     },
     ResultsPanel: {
         position: "absolute",
-        overflow: "hidden",
+        // overflow: "hidden",
         top: 0,
         bottom: 16,
         display: "flex",
@@ -480,22 +693,76 @@ const styles = StyleSheet.create({
         right: 16,
         width: "100%",
         height: "100%",
-        padding: 20,
+        padding: 0,
         backgroundColor: "white",
         borderRadius: 48,
         zIndex: 2,
-        gap: 10,
+        gap: 30,
+    },
+    buttonExplanations: {
+        position: "absolute",
+        bottom: 16,
+        zIndex: 2,
+    },
+    feedbackText: {
+        textAlign: 'center',
+        fontSize: 24,
+        lineHeight: 26.4,
+        color: '#17161D',
+        fontFamily: 'MillingTrial',
+        marginBottom: 20,
+        paddingHorizontal: 24,
     },
     questionsRow: {
         display: "flex",
         flexDirection: "row",
-        gap: 10,
+        gap: 40,
         justifyContent: "center",
         alignItems: "center",
+    },
+    buttonQuestion: {
+        backgroundColor: 'transparent',
+        width: 96,
+        height: 96,
+        borderRadius: 16,
+        transform: [{ rotate: '-5deg' }],
+        
+    },
+    buttonQuestionActive: {
+        backgroundColor: '#f5f3f3ff',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    },
+    questionsContainer: {
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 12,
+        opacity: 1,
+        backgroundColor: "transparent",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    questionsContainerActive: {
+        opacity: 1,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 6,
     },
     imageQuestion:{
         width: 80,
         height: 80,
+    },
+    overlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
+        zIndex: 1,
     }
 });
 

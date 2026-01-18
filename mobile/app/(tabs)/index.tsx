@@ -1,7 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, use } from 'react';
 import { io, Socket } from "socket.io-client";
 import { View, Text, Image, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
 import Home from '../../components/screens/Home';
 import QRscan from '../../components/screens/QRscan';
 import Name from '../../components/screens/Name';
@@ -9,13 +10,34 @@ import Onboarding from '../../components/screens/Onboarding';
 import Tuto from '../../components/screens/Tuto';
 import Configurator from '../../components/screens/Configurator'
 import TransitionOverlay, { TransitionOverlayRef } from '../../components/transitions/TransitionOverlay';
+import * as SplashScreen from 'expo-splash-screen';
+import { Asset } from 'expo-asset';
 
-
-// const background = require('../../../assets/img/hero.png');
+SplashScreen.preventAutoHideAsync();
 
 const SOCKET_URL = "http://172.20.10.4:4000/";
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    MillingTrial: require("../../assets/fonts/MillingTrial15.otf"),
+    MillingTrialBold: require("../../assets/fonts/MillingTrial2.otf"),
+    OpenRunde: require("../../assets/fonts/OpenRunde-Regular.otf"),
+    OpenRundeBold: require("../../assets/fonts/OpenRunde-Bold.otf"),
+    OpenRundeMedium: require("../../assets/fonts/OpenRunde-Medium.otf"),
+    OpenRundeSemibold: require("../../assets/fonts/OpenRunde-Semibold.otf"),
+  });
+
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  useEffect(() => {
+    const videoAsset = require("../../assets/videos/dance.mp4");
+    const loadVideo = async () => {
+      await Asset.loadAsync(videoAsset);
+      setVideoLoaded(true);
+    };
+    loadVideo();
+  }, []);
+
+
   const [currentView, setCurrentView] = useState<'home' | 'name' | 'qrscan' | 'onboarding' | 'tuto' | 'configurator'>('home');
   const [userName, setUserName] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -23,7 +45,15 @@ export default function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   const transitionRef = useRef<TransitionOverlayRef | null>(null);
-  const [isModelAppear, setIsModelAppear] = useState(false);;
+  const [isModelAppear, setIsModelAppear] = useState(false);
+
+
+  useEffect(() => {
+    if (videoLoaded && fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [videoLoaded, fontsLoaded]);
+  
 
   const leaveSession = () => {
     if (socket) {
@@ -56,6 +86,10 @@ export default function App() {
         };
     }
   }, [roomId]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
 
   const switchViewWithTransition = (nextView: typeof currentView) => {
@@ -148,10 +182,10 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#000000', 
+    backgroundColor: '#17161D', 
     padding: 0, 
-    paddingTop: 25,
-    position: 'relative',
+    paddingTop: 90,
+    position: 'relative', 
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -175,6 +209,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 48,
     borderTopRightRadius: 48,
     overflow: 'hidden',
+    paddingTop: 0,
+    marginTop: 0,
   },
   image: {
     flex: 1,
@@ -183,6 +219,16 @@ const styles = StyleSheet.create({
   leaveIcon: {
     width: 18,
     height: 18,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: '#908F8C',
+    fontSize: 16,
   },
   
 });

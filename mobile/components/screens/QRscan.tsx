@@ -39,7 +39,7 @@ export default function QRScan({ onComplete }: Props) {
         <>
           {showContent && (
             <Animated.Image
-              source={require("../../assets/icons/logo.png")}
+              source={require("../../assets/icons/2100-logo.png")}
               style={styles.image}
               entering={BounceIn.delay(0).duration(500)}
               exiting={BounceOut.duration(500)}
@@ -52,6 +52,9 @@ export default function QRScan({ onComplete }: Props) {
             barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
             onBarcodeScanned={handleScan}
           />
+
+          <View style={styles.cameraPointer}>
+          </View>
           
           {showContent && (
             <Animated.Text 
@@ -71,41 +74,56 @@ export default function QRScan({ onComplete }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F4F3EF",
     alignItems: "center",
     justifyContent: "center",
   },
   camera: {
-    width: 300,
-    height: 300,
+    width: '100%',
+    height: '100%',
     borderRadius: 20,
     overflow: "hidden",
+    position: "absolute",
+    
+  },
+  cameraPointer: {
+    width: 223,
+    height: 223,
+    borderRadius: 20,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "white",
+    position: "relative",
   },
   info: {
-    marginTop: 20,
-    color: "#000000",
+    marginTop: 30,
+    color: "#F4F3EF",
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
     maxWidth: 300,
-  },
-  btn: {
-    backgroundColor: "#2676FF",
-    padding: 20,
-    paddingHorizontal: 24,
-    marginTop: 20,
-    borderRadius: 100,
-  },
-  btnText: {
-    color: "#000",
-    fontWeight: "bold",
-    fontSize: 16,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 }, 
+    textShadowRadius: 2, 
   },
   image: {
     width: '70%',
     height: 120,
-    marginBottom: 30,
+    marginBottom: 25,
     resizeMode: 'contain',
     position: 'relative',
+    zIndex: 1,
+  },
+  btn: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    backgroundColor: "#F4F3EF",
+  },
+  btnText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000000",
   },
 });

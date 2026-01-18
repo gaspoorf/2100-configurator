@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Image, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { 
     SlideInRight, 
     SlideOutLeft, 
@@ -15,7 +15,7 @@ type Props = {
 
 const TUTO_STEPS = [
     { title: "Joue avec les boutons pour faconner ton monde", description: "" },
-    { title: "Modifie tes choix quand tu veux (le destin, ca se réécrit)", description: "Tu t’es trompé ? Tu as changé d’avis ? Pas grave. Tu peux revenir sur n’importe quelle réponse." },
+    { title: "Modifie tes choix quand tu veux (le destin se réécrit)", description: "Tu t’es trompé ? Tu as changé d’avis ? Pas grave. Tu peux revenir sur n’importe quelle réponse." },
     { title: "", description: "Climat, faune, flore… tout se construit en direct. Prépare-toi à voir ton univers se révéler."},
 ];
 
@@ -70,7 +70,7 @@ export default function Tuto({ userName, onComplete }: Props) {
 
             <Animated.View 
                 key={step}
-                entering={enteringAnim.duration(500)} // Durée de 500ms
+                entering={enteringAnim.duration(500)}
                 exiting={exitingAnim.duration(500)}
                 style={styles.slideContainer}
             >
@@ -118,7 +118,10 @@ export default function Tuto({ userName, onComplete }: Props) {
                         style={[styles.button, styles.button]}
                         onPress={handleNext}
                     >
-                        <Text style={styles.buttonText}>→</Text>
+                        <Image
+                            source={require("../../assets/icons/arrow.png")}
+                            style={styles.buttonArrow}
+                        />
                     </TouchableOpacity>
                 )}
 
@@ -128,14 +131,20 @@ export default function Tuto({ userName, onComplete }: Props) {
                             style={[styles.button, styles.button]}
                             onPress={handlePrev}
                         >
-                            <Text style={styles.buttonText}>←</Text>
+                            <Image
+                                source={require("../../assets/icons/arrow.png")}
+                                style={[styles.buttonArrow, { transform: [{ rotate: '180deg'}, { scale: 0.2 }] }]}
+                            />
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             style={[styles.button, styles.button]}
                             onPress={handleNext}
                         >
-                            <Text style={styles.buttonText}>→</Text>
+                            <Image
+                                source={require("../../assets/icons/arrow.png")}
+                                style={styles.buttonArrow}
+                            />
                         </TouchableOpacity>
                     </>
                 )}
@@ -151,38 +160,37 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         backgroundColor: 'transparent',
         height: '100%',
+        width: '100%',
         padding: 17,
-        flex: 1, // Changé display flex etc pour le standard RN
+        flex: 1,
     },
     slideContainer: {
         flex: 1,
         width: '100%',
-        alignItems: 'center', // Pour centrer l'image et le texte
+        alignItems: 'center',
     },
     content: {
         alignItems: 'center',
-        marginTop: 40,
+        marginTop: 30,
         width: '100%',
-    },
-    stepIndicator: {
-        fontSize: 14,
-        color: '#a01515',
-        marginBottom: 20,
-        letterSpacing: 1,
     },
     title: {
         fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 20,
+        fontWeight: 'normal',
+        marginBottom: 16,
         textAlign: 'center',
-        paddingHorizontal: 16,
+        fontFamily: 'MillingTrial',
+        lineHeight: 21,
+        paddingHorizontal: 40,
     },
     description: {
         textAlign: 'center',
         fontSize: 14,
-        fontWeight: 700,
-        color: '#000000',
-        paddingHorizontal: 36,
+        fontWeight: 500,
+        color: '#17161D',
+        paddingHorizontal: 50 ,
+        fontFamily: 'OpenRundeMedium',
+        letterSpacing: -0.28,
     },
     buttons: {
         display: 'flex',
@@ -207,13 +215,12 @@ const styles = StyleSheet.create({
         shadowColor: '#000', 
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
+        width: 64,
+        height: 64,
     },
-    buttonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#000'
+    buttonArrow: {
+        transform: [{ scale: 0.2 }],
     },
-
     buttonDisabled: {
         backgroundColor: '#ccc',
     },
@@ -226,26 +233,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         boxShadow: "0 4px 6px 0 rgba(0, 0, 0, 0.15)",
     },
-    input: {
-        borderWidth: 1,
-        borderColor: 'transparent',
-        borderRadius: 8,
-        padding: 10,
-        width: '100%',
-        marginTop:  0,
-        fontSize: 34,
-        fontWeight: 700,
-        color: '#000000',
-        textAlign: "center",
-        // textTransform: "uppercase",
-    },
    
     image: {
         width: '100%',
-        resizeMode: 'contain',
+        borderRadius: 35,
+        overflow: 'hidden',
         position: 'relative',
         pointerEvents: 'none',
-        
     },
 
     stickers1: {

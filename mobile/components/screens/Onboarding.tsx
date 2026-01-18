@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import Animated, { 
   BounceIn, 
@@ -62,7 +62,7 @@ export default function Onboarding({ userName, onComplete }: Props) {
     ...ONBOARDING_STEPS[step],
     description:
       step === 0
-        ? `Félicitations, ${userName ?? ''} ! Tu tiens littéralement le destin de la planète entre tes mains. Maintenant, c'est toi le boss !`
+        ? `Félicitations ${userName ?? ''}, ${"\n"} Tu tiens littéralement le destin de la planète entre tes mains. Maintenant, c'est toi le boss !`
         : ONBOARDING_STEPS[step].description,
   }), [step, userName]);
 
@@ -112,9 +112,20 @@ export default function Onboarding({ userName, onComplete }: Props) {
         onPress={handleNext}
         disabled={step === 0 && !userName}
       >
-        <Text style={styles.buttonText}>
-          {step === ONBOARDING_STEPS.length - 1 ? 'Letsgo' : '→'}
-        </Text>
+        {step === ONBOARDING_STEPS.length - 1 ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center'  }}>
+            <Text style={styles.buttonText}>Let's goooooooo</Text>
+            <Image
+              source={require("../../assets/icons/arrow.png")}
+              style={styles.buttonArrow}
+            />
+          </View>
+        ) : (
+          <Image
+            source={require("../../assets/icons/arrow.png")}
+            style={styles.buttonArrow}
+          />
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -132,7 +143,8 @@ const styles = StyleSheet.create({
   topHeader: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 16,
+    padding: 0,
   },
   paginationContainer: {
     flexDirection: 'row',
@@ -143,11 +155,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 32,
     gap: 3,
-    shadowColor: '#000',
+    shadowColor: '#17161D',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    margin: 0,
   },
   dot: {
     height: 5,
@@ -161,12 +174,14 @@ const styles = StyleSheet.create({
   description: { 
     textAlign: 'center', 
     fontSize: 24, 
-    fontWeight: '700', 
-    color: '#000',
-
+    fontWeight: '200', 
+    lineHeight: 26.4,
+    color: '#17161D',
     textShadowColor: 'rgba(255, 255, 255, 0.5)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
+    fontFamily: 'MillingTrial',
+
   },
   button: { 
     backgroundColor: '#ffffff', 
@@ -181,9 +196,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
-    shadowColor: '#000', 
+    shadowColor: '#17161D', 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
+    width: 64,
+    height: 64,
   },
   buttonDisabled: { 
     backgroundColor: '#ccc',
@@ -194,31 +211,33 @@ const styles = StyleSheet.create({
     height: 70, 
     borderRadius: 35, 
     aspectRatio: undefined,
-
-  
     alignSelf: 'center',
     position: 'absolute', 
     marginBottom: 0,
     bottom: 50,
   },
   buttonText: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#000' 
+    fontSize: 14,
+    color: '#17161D',
+    fontFamily: 'OpenRundeMedium',
+    letterSpacing: -0.28,
+  },
+  buttonArrow: {
+    transform: [{ scale: 0.2 }],
   },
   input: { 
-    borderColor: '#000', 
+    borderColor: '#17161D', 
     padding: 10, 
     width: '100%', 
     marginTop: 20, 
     fontSize: 34, 
     fontWeight: '700', 
-    color: '#000', 
+    color: '#17161D', 
     textAlign: "center",
     zIndex: 1,
   },
   videoContainer:{
-    flex: 2, 
+    flex: 1, 
     alignItems: 'center', 
     padding: 0, 
     paddingVertical: 0,
@@ -226,10 +245,10 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   video: {
-    bottom: 0,
+    bottom: -90,
     position: 'absolute', 
-    width: '130%',
-    height: '100%',
+    width: '120%',
+    height: '120%',
     zIndex: 0, 
   },
 });

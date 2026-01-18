@@ -42,7 +42,7 @@ const TransitionOverlay = forwardRef<TransitionOverlayRef>((props, ref) => {
         source={require("../../assets/img/hero.png")}
         style={styles.image}
       />
-      <Text>Attend un peu, on installe le décor...</Text>
+      <Text style={styles.text}>Attend un peu, on installe le décor...</Text>
     </Animated.View>
   );
 });
@@ -52,7 +52,8 @@ export default TransitionOverlay;
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 0, left: 0,
+    bottom: 0, 
+    left: 0,
     width: "100%",
     height: "110%",
     zIndex: 9999,
@@ -60,9 +61,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     display: "flex",
+    gap: 30,
+    flexDirection: "column",
   },
   image: {
     width: 132,
     height: 132,
   },
+  text: {
+    color: "#020100",
+    fontSize: 30,
+    letterSpacing: 0.6,
+    lineHeight: 30,
+    fontFamily: "MillingTrial",
+    textAlign: "center",
+  }
 });

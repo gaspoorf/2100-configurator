@@ -20,6 +20,7 @@ config.resolver.assetExts = [
   'jpg',
   'ttf',
   'mp4',
+  'otf',
 ];
 
 module.exports = config;

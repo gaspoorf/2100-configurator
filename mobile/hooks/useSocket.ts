@@ -12,12 +12,20 @@ type ConfiguratorValues = {
     clothes: number;
 };
 
+type ResultData = {
+    text: string;
+    rank: string;
+    globalPercentage?: number;
+    userPercentages?: any;
+} | null;
+
 export function useConfiguratorSocket(
     socket: Socket | null,
     roomId: string,
     values: ConfiguratorValues
 ) {
     const [isConnected, setIsConnected] = useState(false);
+    const [resultData, setResultData] = useState<ResultData>(null);
 
     // SOCKET LISTENERS
     useEffect(() => {
@@ -28,7 +36,10 @@ export function useConfiguratorSocket(
         const onConnect = () => setIsConnected(true);
         const onDisconnect = () => setIsConnected(false);
         const onUpdateClient = (data: any) => {
-            console.log("📥 Mise à jour reçue:", data);
+            if (data.type === "RESULT_CALCULATED") {
+                console.log("résultats reçus:", data.data);
+                setResultData(data.data);
+            }
         };
 
         socket.on("connect", onConnect);
@@ -128,6 +139,7 @@ export function useConfiguratorSocket(
 
     return {
         isConnected,
+        resultData,
         sendReveal,
         sendValidateForm,
         sendCameraMovement,

@@ -301,7 +301,7 @@ export const Model = React.memo(function Model({
 
         Object.entries(spots.current).forEach(([k, b]) => {
             if (!b) return;
-            const z = pressedSpot.current === k ? b.userData.initialZ - 0.3 : b.userData.initialZ;
+            const z = pressedSpot.current === k ? b.userData.initialZ - (-0.3) : b.userData.initialZ;
             b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.2);
         });
 

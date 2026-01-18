@@ -11,7 +11,7 @@ const cameraPositions = [
     new THREE.Vector3(-7, -12, 25),
     new THREE.Vector3(12, -13, 19),
     new THREE.Vector3(10, -30, 32),
-    new THREE.Vector3(38, -7, 22),
+    new THREE.Vector3(38, -6.5, 20),
 ];
 
 const cameraLookAt = [
@@ -23,7 +23,7 @@ const cameraLookAt = [
     new THREE.Vector3(-1, -6, 0),
     new THREE.Vector3(8, -7, 0),
     new THREE.Vector3(1, -14, 0),
-    new THREE.Vector3(0, -7, 0),
+    new THREE.Vector3(0, -6.5, 0),
 ];
 
 const cameraRotationZ = [
@@ -56,15 +56,15 @@ export function CameraController({ index }: CameraControllerProps) {
             return;
         }
 
-        camera.position.lerp(cameraPositions[index], 0.1);
-        currentLookAt.current.lerp(cameraLookAt[index], 0.1);
+        camera.position.lerp(cameraPositions[index],0.07);
+        currentLookAt.current.lerp(cameraLookAt[index],0.07);
         camera.lookAt(currentLookAt.current);
 
         const targetRoll = cameraRotationZ[index];
         currentRoll.current = THREE.MathUtils.lerp(
             currentRoll.current,
             targetRoll,
-            0.1
+            0.07
         );
 
         camera.rotation.z = currentRoll.current;
