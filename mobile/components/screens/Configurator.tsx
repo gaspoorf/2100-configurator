@@ -12,9 +12,11 @@ import { useConfiguratorSocket } from "@/hooks/useSocket";
 import Animated, { 
     SlideInDown, 
     FadeOutUp, 
+    FadeInUp,
     FadeInDown, 
     FadeIn,
     FadeOut,
+    FadeOutDown,
     ZoomIn,
     useAnimatedStyle,
     withSpring,
@@ -274,8 +276,8 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             {!isModelTurned && localIsModelAppear &&(
                 <Animated.View
                     // SlideInDown
-                    entering={FadeInDown.duration(300).delay(1000)}
-                    exiting={FadeOutUp.duration(300)}
+                    entering={FadeInUp.duration(300).delay(1000)}
+                    exiting={FadeOutDown.duration(300)}
                     style={styles.animatedHeaderContainer}
                 >
                     <LinearGradient
@@ -284,17 +286,25 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                         end={{ x: 0, y: 1 }}
                         style={styles.gradientContent}
                     >
-                        <Text style={styles.label}>{getQuestionText()}</Text>
+                        <Animated.Text
+                            key={currentStep}
+                            entering={FadeIn.duration(200).delay(100)}
+                            exiting={FadeOut.duration(200)}
+                            style={styles.label}
+                        >
+                            {getQuestionText()}
+                        </Animated.Text>
                     </LinearGradient>
                 </Animated.View>
             )}
 
-            <Animated.Image
-                entering={FadeIn.duration(300).delay(5000)}
-                exiting={FadeOut.duration(300)}
-                source={require("../../assets/img/hero-return.png")}
-                style={styles.image}
-            />
+            <Animated.View style={styles.imageContainer} entering={FadeInUp.duration(300).delay(4000)} exiting={FadeOutDown.duration(300)}>
+                <Image
+                    source={require("../../assets/img/hero-return.png")}
+                    style={styles.image}
+                />
+            </Animated.View>
+            
 
             <View style={styles.canvas}>
                 <Canvas camera={{ position: [0, 0, 15] }} gl={{ alpha: true }} onCreated={(state) => state.gl.setClearColor(0x000000, 0)}>
@@ -356,7 +366,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                         </TouchableOpacity>
                     )}
                     {currentStep === steps.length - 1 && (
-                        <TouchableOpacity onPress={handleFinish} style={[styles.button, { width: 'auto', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 0 }]} >
+                        <TouchableOpacity onPress={handleFinish} style={[styles.button, { width: 'auto', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingLeft: 50 }]} >
                             <Text style={styles.buttonText}>Découvrir le monde</Text> 
                             <Image
                                 source={require("../../assets/icons/stars.png")}
@@ -380,7 +390,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             )}
 
             {isModelTurned && feedbackIsShown && (
-                <Animated.View entering={FadeIn.duration(400)} exiting={FadeOutUp.duration(300)} style={styles.ResultsPanel}>
+                <Animated.View entering={FadeIn.duration(400)} exiting={FadeOutDown.duration(300)} style={styles.ResultsPanel}>
 
                     <TouchableOpacity onPress={() => { closeResult(); sendCloseResult(); }} style={[styles.button, styles.buttonClose]}>
                         <Image
@@ -654,6 +664,9 @@ const styles = StyleSheet.create({
         left: 0,
         zIndex: 0,
         backgroundColor: "transparent",
+        borderTopLeftRadius: 48,
+        borderTopRightRadius: 48,
+        overflow: "hidden",
     },
     container: {
         flex: 1,
@@ -684,14 +697,24 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
         width: '100%',
     },
-    image: {
-        width: 250,
-        height: 250,
+    imageContainer: {
+        borderColor: "red",
+        borderWidth: 0,
+        width: 200,
+        height: 53,
         position: "absolute",
-        top: -123,
-        zIndex: 2,
+        top: 0,
+        zIndex: 1,
+        overflow: "hidden",
+    },
+    image: {
+        width:'100%',
+        height: '100%',
+        transform: [{ scale: 7 }],
+        top: -28,
+        position: 'absolute',
+        
         resizeMode: "contain",
-        marginBottom: 10,
     }, 
     imageResultsContainer:{
         flex: 2, 
@@ -756,7 +779,8 @@ const styles = StyleSheet.create({
     buttonStars: {
         transform: [{ scale: 0.2 }],
         padding: 0,
-        margin: 0,
+        marginLeft: -25,
+        marginRight: 0,
     },
     buttonCloseIcon: {
         transform: [{ scale: 0.3 }],
@@ -767,7 +791,7 @@ const styles = StyleSheet.create({
         padding: 0,
         margin: 0,
         position: "absolute",
-        top: 0,
+        top: -28,
         zIndex: 10,        
     },
     buttonText: {
@@ -782,7 +806,7 @@ const styles = StyleSheet.create({
     ResultsPanel: {
         position: "absolute",
         // overflow: "hidden",
-        top: 0,
+        top: -35,
         bottom: 16,
         display: "flex",
         flexDirection: "column",
@@ -791,7 +815,7 @@ const styles = StyleSheet.create({
         left: 16,
         right: 16,
         width: "100%",
-        height: "100%",
+        height: "103%",
         padding: 0,
         backgroundColor: "white",
         borderRadius: 48,

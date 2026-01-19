@@ -118,6 +118,8 @@ export const Model = React.memo(function Model({
     const START_ROTATION_Z =  -2;
     const START_ROTATION_X = Math.PI * 2 + 5.3;
 
+    const isGearActive = useRef(false);
+
 
     // const START_POSITION_Z = 0;
     // const START_POSITION_X = 0;
@@ -268,20 +270,25 @@ export const Model = React.memo(function Model({
                 fakeGear.current.visible = false;
                 realGear.current.visible = true;
                 realGear.current.raycast = THREE.Mesh.prototype.raycast;
+                isGearActive.current = true;
             }, 1000);
         } else {
             fakeGear.current.visible = true;
             realGear.current.visible = false;
             realGear.current.raycast = () => null;
+            isGearActive.current = false;
         }
     }, [isModelTurned]);
 
 
     useEffect(() => {
-        if (realGear.current) {
+        if (realGear.current && isModelTurned) {
             const p = new THREE.Vector3();
             realGear.current.getWorldPosition(p);
-            gearPlane.current.constant = -p.z; 
+            gearPlane.current.setFromNormalAndCoplanarPoint(
+                new THREE.Vector3(0, 0, 1),
+                p
+            );
         }
     }, [isModelTurned]);
 
@@ -348,12 +355,12 @@ export const Model = React.memo(function Model({
         Object.entries(button2.current).forEach(([k, b]) => {
             if (!b) return;
             const z = pressed2.current === k ? b.userData.initialZ - 0.3 : b.userData.initialZ;
-            b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.2);
+            b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.5);
         });
 
         Object.values(button3.current).forEach((b: any) => {
             const i = promptIA === 0 ? 0 : promptIA === 50 ? 1 : 2;
-            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, b.userData.initial - [0, -1.2, -2.5][i], 0.05);
+            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, b.userData.initial - [0, -1.2, -2.5][i], 0.5);
         });
 
         Object.values(button4.current).forEach((b: any) => {
@@ -364,7 +371,7 @@ export const Model = React.memo(function Model({
         Object.entries(button6.current).forEach(([k, b]) => {
             if (!b) return;
             const z = pressed6.current === k ? b.userData.initialZ - 0.2 : b.userData.initialZ;
-            b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.2);
+            b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.5);
         });
 
         Object.values(button7.current).forEach((b: any) => {
@@ -392,7 +399,7 @@ export const Model = React.memo(function Model({
             b.position.z = THREE.MathUtils.lerp(
                 b.position.z,
                 b.userData.initialZ + offsetZ,
-                0.1
+                0.6
             );
 
             if (anim.progress >= Math.PI) {
@@ -472,13 +479,23 @@ export const Model = React.memo(function Model({
             resetScene();
             onResetClick();
         }
-        if (name === "gear-real") {
+        if (name === "gear-real" && isGearActive.current) {
             draggingGear.current = true;
             gearTarget.current = gearCurrent.current;
+            
+            if (realGear.current) {
+                const gearPos = new THREE.Vector3();
+                realGear.current.getWorldPosition(gearPos);
+                gearPlane.current.setFromNormalAndCoplanarPoint(
+                    new THREE.Vector3(0, 0, 1),
+                    gearPos
+                );
+            }
+            
             const hit = e.ray.intersectPlane(gearPlane.current, intersection.current);
             if (hit) {
                 gearStartY.current = hit.y;
-            }
+            } 
         }
         if (name === "gear-fake") {
             fakeGear.current!.visible = false;
@@ -517,17 +534,24 @@ export const Model = React.memo(function Model({
             return null;
         };
 
-        if (draggingGear.current) {
-            if (state.raycaster.ray.intersectPlane(gearPlane.current, intersection.current)) {
+        if (draggingGear.current && realGear.current) {
+            const gearPos = new THREE.Vector3();
+            realGear.current.getWorldPosition(gearPos);
+            gearPlane.current.setFromNormalAndCoplanarPoint(
+                new THREE.Vector3(0, 0, 1),
+                gearPos
+            );
+            
+            const hit = state.raycaster.ray.intersectPlane(gearPlane.current, intersection.current);
+            if (hit) {
                 const currentY = intersection.current.y;
                 const deltaY = currentY - gearStartY.current;
 
-                const rotationSensitivity = 0.2; 
-
+                const rotationSensitivity = 0.2;
                 const deltaRotation = deltaY * rotationSensitivity;
+                
                 gearTarget.current += deltaRotation;
                 gearAccum.current += deltaRotation;
-
                 gearStartY.current = currentY;
             }
         }
@@ -542,6 +566,7 @@ export const Model = React.memo(function Model({
             yearIndex.current = THREE.MathUtils.clamp(yearIndex.current + direction, 0, years.length - 1);
             onYearChange(years[yearIndex.current]);
             gearAccum.current -= STEP_ROTATION * direction;
+            console.log("Year changed to:", years[yearIndex.current]);
         }
 
         if (dragging1.current && cursor1.current && plane1.current) {

@@ -4,8 +4,12 @@ import Animated, {
     SlideInRight, 
     SlideOutLeft, 
     SlideInLeft, 
-    SlideOutRight 
+    SlideOutRight, 
+    FadeIn,
+    FadeInDown,
+    BounceIn,
 } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 
 type Props = {
@@ -62,38 +66,65 @@ export default function Tuto({ userName, onComplete }: Props) {
         
     };
 
-    const enteringAnim = direction === 'next' ? SlideInRight : SlideInLeft;
-    const exitingAnim = direction === 'next' ? SlideOutLeft : SlideOutRight;
+    const enteringAnim =
+    (direction === 'next' ? SlideInRight : SlideInLeft)
+        .springify()
+        .damping(55)
+        .stiffness(370);
+
+    const exitingAnim =
+        (direction === 'next' ? SlideOutLeft : SlideOutRight)
+            .springify()
+            .damping(55)
+            .stiffness(370);
+
+
+    
+    const StickerEnter = BounceIn    
+        .delay(500)        // opacité
+        .springify()               // transforme en spring
+        .damping(75)               // moins de rebond
+        .stiffness(260)
+
 
     return (
         <View style={styles.container}>
 
             <Animated.View 
                 key={step}
-                entering={enteringAnim.duration(500)}
-                exiting={exitingAnim.duration(500)}
+                entering={enteringAnim}
+                exiting={exitingAnim}
                 style={styles.slideContainer}
             >
 
                 {step === 0 && (
-                    <Image
-                        source={require("../../assets/img/stickers/earth-sticker.png")}
-                        style={styles.stickers1}
-                    />
+                    <Animated.View entering={FadeIn.duration(300)} style={styles.stickers1}>
+                        <Animated.Image
+                            entering={StickerEnter}
+                            source={require("../../assets/img/stickers/earth-sticker.png")}
+                            style={styles.stickersImg1}
+                        />
+                    </Animated.View>
                 )}
 
                 {step === 1 && ( 
-                    <Image
-                        source={require("../../assets/img/stickers/btn-sticker.png")}
-                        style={styles.stickers2}
-                    />
+                    <Animated.View entering={FadeIn.duration(300).delay(500)} style={styles.stickers2}>
+                        <Animated.Image
+                            entering={StickerEnter}
+                            source={require("../../assets/img/stickers/btn-sticker.png")}
+                            style={styles.stickersImg2}
+                        />
+                    </Animated.View>
                 )}
 
                 {step === 2 && (
-                    <Image
-                        source={require("../../assets/img/stickers/emoji-sticker.png")}
-                        style={styles.stickers3}
-                    />
+                    <Animated.View entering={FadeIn.duration(300).delay(500)} style={styles.stickers3}>
+                        <Animated.Image
+                            entering={StickerEnter}
+                            source={require("../../assets/img/stickers/emoji-sticker.png")}
+                            style={styles.stickersImg3}
+                        />
+                    </Animated.View>
                 )}
 
                 
@@ -102,9 +133,9 @@ export default function Tuto({ userName, onComplete }: Props) {
                     style={styles.image}
                 />
 
-                <View style={styles.content}>
-                    <Text style={styles.title}>{currentContent.title}</Text>
-                    <Text style={styles.description}>{currentContent.description}</Text>
+                <View style={styles.content} >
+                    <Animated.Text style={styles.title} entering={FadeInDown.duration(300).delay(500)}>{currentContent.title}</Animated.Text>
+                    <Animated.Text style={styles.description} entering={FadeInDown.duration(300).delay(570)}>{currentContent.description}</Animated.Text>
                 </View>
 
             </Animated.View>
@@ -116,7 +147,7 @@ export default function Tuto({ userName, onComplete }: Props) {
                 {step === 0 && (
                     <TouchableOpacity
                         style={[styles.button, styles.button]}
-                        onPress={handleNext}
+                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).then(handleNext)}
                     >
                         <Image
                             source={require("../../assets/icons/arrow.png")}
@@ -129,7 +160,7 @@ export default function Tuto({ userName, onComplete }: Props) {
                     <>
                         <TouchableOpacity
                             style={[styles.button, styles.button]}
-                            onPress={handlePrev}
+                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).then(handlePrev)}
                         >
                             <Image
                                 source={require("../../assets/icons/arrow.png")}
@@ -139,7 +170,7 @@ export default function Tuto({ userName, onComplete }: Props) {
 
                         <TouchableOpacity
                             style={[styles.button, styles.button]}
-                            onPress={handleNext}
+                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).then(handleNext)}
                         >
                             <Image
                                 source={require("../../assets/icons/arrow.png")}
@@ -244,11 +275,9 @@ const styles = StyleSheet.create({
 
     stickers1: {
         position: 'absolute',
-        top: -18,
-        left: -30,
+        top: -22,
+        left: -40,
         zIndex: 2,
-        width: 150,
-        height: 80,
         transform: [{ rotate: '-15deg' }],
     }, 
 
@@ -257,8 +286,7 @@ const styles = StyleSheet.create({
         bottom: '37%',
         right: -30,
         zIndex: 2,
-        width: 120,
-        height: 120,
+        
         transform: [{ rotate: '9deg' }],
     },
 
@@ -267,9 +295,25 @@ const styles = StyleSheet.create({
         top: '3%',
         left: -30,
         zIndex: 2,
-         width: 132,
-        height: 132,
         transform: [{ rotate: '-15deg' }],
-    }
+    },
+
+    stickersImg1: {
+        width: 150,
+        height: 80,
+        resizeMode: 'contain',
+    },
+
+    stickersImg2: {
+        width: 120,
+        height: 120,
+        resizeMode: 'contain',
+    },
+
+     stickersImg3: {
+        width: 132,
+        height: 132,
+        resizeMode: 'contain',
+    },
 
 });

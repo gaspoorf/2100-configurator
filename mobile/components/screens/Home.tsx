@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, View, Text, StyleSheet, Pressable  } from 'react-native';
 import Animated, { SlideInDown, FadeOutUp, FadeInDown } from 'react-native-reanimated';
 
@@ -10,16 +10,25 @@ type Props = {
 export default function Home({ onStart }: Props) {
     const [showLogo, setShowLogo] = useState(true);
 
-    const handlePress = () => {
-        setShowLogo(false);
-        setTimeout(() => {
-            onStart();
-        }, 500);
-    };
+    // const handlePress = () => {
+    //     setShowLogo(false);
+    //     setTimeout(() => {
+    //         onStart();
+    //     }, 500);
+    // };
+
+    useEffect(() => {
+        setTimeout (() => {
+            setShowLogo(false);
+            setTimeout(() => {
+                onStart();
+            }, 500);
+        }, 1000);
+    });
 
     return (
         <View style={styles.container}>
-            <Pressable  style={styles.btnContainer} onPress={handlePress}>
+            {/* <Pressable  style={styles.btnContainer} onPress={handlePress}> */}
 
             {showLogo && (
                 <Animated.Image
@@ -52,7 +61,7 @@ export default function Home({ onStart }: Props) {
                 />
             )}
 
-            </Pressable>
+            {/* </Pressable> */}
         </View>
     );
 }

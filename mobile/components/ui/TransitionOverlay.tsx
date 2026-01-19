@@ -42,7 +42,7 @@ const TransitionOverlay = forwardRef<TransitionOverlayRef>((props, ref) => {
         source={require("../../assets/img/hero.png")}
         style={styles.image}
       />
-      <Text style={styles.text}>Attend un peu, on installe le décor...</Text>
+      <Text style={styles.text}>Attend un peu, {"\n"} on installe le décor...</Text>
     </Animated.View>
   );
 });

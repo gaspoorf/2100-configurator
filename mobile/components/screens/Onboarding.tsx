@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
+import * as Haptics from 'expo-haptics';
 import Animated, { 
   BounceIn, 
   BounceOut, 
@@ -20,7 +21,8 @@ type Props = {
 };
 
 const ONBOARDING_STEPS = [
-  { title: "", description: "Ta mission : Créer un écosystème capable de tenir tête aux changements climatiques." },
+  { title: "", description: "Félicitations ! Tu tiens littéralement le destin de la planète entre tes mains. Maintenant, c'est toi le boss !" },
+  { title: "", description: "Ta mission : Créer un écosystème capable de tenir tête aux changements climatique (et éviter que tout parte en cacahuète)." },
   { title: "", description: "Tu vas devoir faire des choix. Des vrais ! Des décisions qui vont tout changer pour ta planète." },
   { title: "", description: "Pas besoin d'être un.e écolo parfait.e. Juste… essaie de ne pas tout détruire ok ? Prêt.e ? Allez, on commence !" },
 ];
@@ -28,7 +30,7 @@ const ONBOARDING_STEPS = [
 const PaginationDot = ({ isActive }: { isActive: boolean }) => {
   const rStyle = useAnimatedStyle(() => {
     return {
-      width: withSpring(isActive ? 24 : 5, { damping: 10, stiffness: 50 }),
+      width: withSpring(isActive ? 24 : 5, { damping: 45, stiffness: 270 }),
       backgroundColor: withTiming(isActive ? '#000000' : '#908F8C', { duration: 50 }), 
     };
   }, [isActive]);
@@ -81,8 +83,8 @@ export default function Onboarding({ userName, onComplete }: Props) {
           <Animated.Text 
           key={step}
           style={styles.description}
-          entering={FadeIn.delay(300).duration(300)}
-          exiting={FadeOut.duration(300)}
+          entering={FadeIn.delay(200).duration(200)}
+          exiting={FadeOut.duration(200)}
           >
             {currentContent.description}
           </Animated.Text>
@@ -92,7 +94,11 @@ export default function Onboarding({ userName, onComplete }: Props) {
 
       {showContent && (
         <Animated.View style={styles.videoContainer} entering={FadeIn.delay(300).duration(300)} exiting={FadeOut.duration(300)}>
-          <Video
+          <Image
+            style={styles.video}
+            source={require("../../assets/img/hero.png")}
+          />
+          {/* <Video
             style={styles.video}
             ref={video}
             source={require('../../assets/videos/dance.mp4')}
@@ -101,17 +107,18 @@ export default function Onboarding({ userName, onComplete }: Props) {
             shouldPlay={true}
             resizeMode={ResizeMode.COVER}
             useNativeControls={false}
-          />
+          /> */}
         </Animated.View >
       )}
 
       <TouchableOpacity
+        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(handleNext)}
         style={[
           styles.button,
           !userName && step === 0 && styles.buttonDisabled,
           step === ONBOARDING_STEPS.length - 1 && styles.buttonFinish,
         ]}
-        onPress={handleNext}
+        // onPress={handleNext}
         disabled={step === 0 && !userName}
       >
         {step === ONBOARDING_STEPS.length - 1 ? (
@@ -247,10 +254,10 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   video: {
-    bottom: -90,
+    bottom: -210,
     position: 'absolute', 
-    width: '120%',
-    height: '120%',
+    width: '300%',
+    height: '150%',
     zIndex: 0, 
   },
 });

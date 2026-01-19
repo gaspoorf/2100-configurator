@@ -9,7 +9,7 @@ import Name from '../../components/screens/Name';
 import Onboarding from '../../components/screens/Onboarding';
 import Tuto from '../../components/screens/Tuto';
 import Configurator from '../../components/screens/Configurator'
-import TransitionOverlay, { TransitionOverlayRef } from '../../components/transitions/TransitionOverlay';
+import TransitionOverlay, { TransitionOverlayRef } from '../../components/ui/TransitionOverlay';
 import * as SplashScreen from 'expo-splash-screen';
 import { Asset } from 'expo-asset';
 
@@ -167,10 +167,10 @@ export default function App() {
         if (!userName || !roomId || !socket) return null;
         return <View style={styles.container}>
             <TouchableOpacity style={styles.button} onPress={leaveSession}><Image source={require("../../assets/icons/leave.png")} style={styles.leaveIcon} /><Text style={styles.buttonText}>Quitter la session</Text></TouchableOpacity>
-            <View style={styles.componentContainer}>
-              <ImageBackground source={require("../../assets/img/bg.png")} resizeMode="cover" style={styles.componentContainer}>
-              <Configurator key={roomId} userName={userName} roomId={roomId} socket={socket} isModelAppear={isModelAppear}/>
-            </ImageBackground>
+            <View style={styles.componentContainerConfig}>
+              <ImageBackground source={require("../../assets/img/bg.png")} resizeMode="cover" style={styles.componentContainerConfig}>
+                <Configurator key={roomId} userName={userName} roomId={roomId} socket={socket} isModelAppear={isModelAppear}/>
+              </ImageBackground>
             </View>
           </View>
 
@@ -218,6 +218,16 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 48,
     borderTopRightRadius: 48,
     overflow: 'hidden',
+    paddingTop: 0,
+    marginTop: 0,
+  },
+  componentContainerConfig: { 
+    backgroundColor: '#F4F3EF',
+    flex: 1,
+    width: '100%',
+    borderTopLeftRadius: 48,
+    borderTopRightRadius: 48,
+    overflow: 'visible',
     paddingTop: 0,
     marginTop: 0,
   },

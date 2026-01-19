@@ -44,24 +44,38 @@ export default function QRScan({ onComplete }: Props) {
         </>
       ) : (
         <>
-          {showContent && (
+          {/* {showContent && (
             <Animated.Image
               source={require("../../assets/icons/2100-logo.png")}
               style={styles.image}
               entering={FadeIn.delay(0).duration(300)}
               exiting={FadeOut.duration(300)}
             />
+          )} */}
+
+          {showContent && (
+            <Animated.Image
+              source={require("../../assets/img/qr-code.png")}
+              style={styles.imageBG}
+              entering={FadeIn.delay(0).duration(300)}
+              exiting={FadeOut.duration(300)}
+            />
+
           )}
           
-          <CameraView
-            style={styles.camera}
-            facing="back"
-            barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-            onBarcodeScanned={handleScan}
-          />
+          {showContent && (
+            <Animated.View style={styles.cameraContainer} entering={FadeIn.delay(300).duration(300)} exiting={FadeOut.duration(300)}>
+              <CameraView
+                style={styles.camera}
+                facing="back"
+                barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+                onBarcodeScanned={handleScan}
+              />
+            </Animated.View>
+          )}
 
-          <View style={styles.cameraPointer}>
-          </View>
+          {/* <View style={styles.cameraPointer}>
+          </View> */}
           
           {showContent && (
             <Animated.Text 
@@ -85,30 +99,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  cameraContainer: {
+    width: '100%',
+    height: '100%',
+    position: "absolute",
+  },
   camera: {
     width: '100%',
     height: '100%',
-    borderRadius: 20,
     overflow: "hidden",
-    position: "absolute",
-    
   },
-  cameraPointer: {
-    width: 223,
-    height: 223,
-    borderRadius: 20,
-    overflow: "hidden",
-    borderWidth: 2,
-    borderColor: "white",
-    position: "relative",
-  },
+  // cameraPointer: {
+  //   width: 223,
+  //   height: 223,
+  //   borderRadius: 20,
+  //   overflow: "hidden",
+  //   borderWidth: 2,
+  //   borderColor: "white",
+  //   position: "relative",
+  // },
   info: {
-    marginTop: 30,
+    marginTop: 250,
     color: "#F4F3EF",
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
     maxWidth: 300,
+    paddingHorizontal: 20,
+    zIndex: 2,
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: 1, height: 1 }, 
     textShadowRadius: 2, 
@@ -119,6 +137,18 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     resizeMode: 'contain',
     position: 'relative',
+    zIndex: 1,
+  }, 
+  imageBG: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    padding:0,
+    margin: 0,
     zIndex: 1,
   },
   btn: {

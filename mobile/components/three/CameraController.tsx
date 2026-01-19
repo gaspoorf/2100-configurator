@@ -3,26 +3,26 @@ import { useFrame, useThree } from "@react-three/fiber/native";
 import * as THREE from "three";
 
 const cameraPositions = [
-    new THREE.Vector3(-14, 8, 26),
-    new THREE.Vector3(2, -4, 32),
-    new THREE.Vector3(-5, 5, 25),
-    new THREE.Vector3(-16, 3, 19),
-    new THREE.Vector3(-16, -14, 28),
-    new THREE.Vector3(-7, -12, 25),
-    new THREE.Vector3(12, -13, 19),
-    new THREE.Vector3(10, -30, 32),
+    new THREE.Vector3(-13, 18, 19),
+    new THREE.Vector3(2, -1, 21),
+    new THREE.Vector3(-5, 2, 22),
+    new THREE.Vector3(-16, 2, 16),
+    new THREE.Vector3(-16, -12, 17),
+    new THREE.Vector3(-7, -12, 22),
+    new THREE.Vector3(10, -11, 19),
+    new THREE.Vector3(8, -20, 29),
     new THREE.Vector3(10, -6.5, 40),
 ];
 
 const cameraLookAt = [
-    new THREE.Vector3(-4, 14, 2),
-    new THREE.Vector3(8.5, 6.5, 0),
-    new THREE.Vector3(-1, 7, 0),
-    new THREE.Vector3(-10, 8, 0),
-    new THREE.Vector3(-10, -4, 0),
+    new THREE.Vector3(-2, 9, -6),
+    new THREE.Vector3(8.5, 5, 0),
+    new THREE.Vector3(-1, 4, 0),
+    new THREE.Vector3(-8, 6, 0),
+    new THREE.Vector3(-9, -6, 0),
     new THREE.Vector3(-1, -6, 0),
-    new THREE.Vector3(8, -7, 0),
-    new THREE.Vector3(1, -14, 0),
+    new THREE.Vector3(6.5, -8, 0),
+    new THREE.Vector3(2, -14, 0),
     new THREE.Vector3(0, -6.5, 0),
 ];
 

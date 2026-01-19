@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions } from 'react-native';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions, Keyboard, Platform } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, useSharedValue, withSpring, useAnimatedStyle  } from 'react-native-reanimated';
 
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
 };
 
 const ONBOARDING_STEPS = [
-  { title: "Étape 1", description: "Comment s'appelle votre héros ?" },
+  { title: "Étape 1", description: "Comment se nome votre héros ?" },
 ];
 
 export default function Name({ onComplete }: Props) {
@@ -17,12 +17,46 @@ export default function Name({ onComplete }: Props) {
   const [userName, setUserName] = useState('');
   const video = useRef(null);
   const [showContent, setShowContent] = useState(true);
+  const keyboardHeight = useSharedValue(0);
+
+  // btn qui reste en haut du clavier
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        keyboardHeight.value = withSpring(e.endCoordinates.height, {
+          damping: 35,
+          stiffness: 170,
+        });
+      }
+    );
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        keyboardHeight.value = withSpring(0, {
+          damping: 35,
+          stiffness: 170,
+        });
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
+
+  const animatedButtonStyle = useAnimatedStyle(() => {
+    return {
+      bottom: 24 + keyboardHeight.value,
+    };
+  });
 
 
   const handleNext = () => {
-      setShowContent(false);
-      onComplete(userName);
-
+    setShowContent(false);
+    onComplete(userName);
   };
 
   return (
@@ -31,17 +65,15 @@ export default function Name({ onComplete }: Props) {
 
       {showContent && (
         <Animated.View entering={FadeIn.duration(300)} exiting={FadeOut.duration(300)} style={styles.container}>
-          
 
           <Text style={styles.description}>{ONBOARDING_STEPS[step].description}</Text>
 
-  
           <TextInput
             style={styles.input}
             placeholder="Entrer un nom"
             value={userName}
             onChangeText={setUserName}
-            placeholderTextColor="#00000050" 
+            placeholderTextColor="#00000031" 
           />
 
           {showContent && (
@@ -62,21 +94,23 @@ export default function Name({ onComplete }: Props) {
           </Animated.View>
         )}
 
-        <TouchableOpacity
-          style={[
-            styles.button,
-            !userName && step === 0 && styles.buttonDisabled,
-          
-          ]}
-          onPress={handleNext}
-          disabled={step === 0 && !userName}
-        >
-          <Image
-            source={require("../../assets/icons/arrow.png")}
-            style={styles.buttonArrow}
-          />
-        </TouchableOpacity>
+        <Animated.View style={[styles.buttonWrapper, animatedButtonStyle]}>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              !userName && step === 0 && styles.buttonDisabled,
+            ]}
+            onPress={handleNext}
+            disabled={step === 0 && !userName}
+          >
+            <Image
+              source={require("../../assets/icons/arrow.png")}
+              style={styles.buttonArrow}
+            />
+          </TouchableOpacity>
+        </Animated.View>
       </View>
+      
     );
 }
 
@@ -88,7 +122,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F4F3EF',
     padding: 0,
-    paddingTop: 120,
+    paddingTop: 80,
     justifyContent: 'space-between',
     gap: 20,
   },
@@ -106,16 +140,17 @@ const styles = StyleSheet.create({
     letterSpacing: -0.28,
     fontFamily: 'OpenRundeMedium',
   },
+  buttonWrapper: {
+    position: 'absolute',
+    right: 20,
+    zIndex: 2,
+  },
   button: { 
     backgroundColor: '#ffffff', 
     paddingVertical: 24, 
     paddingHorizontal: 27, 
     aspectRatio: 1, 
-    borderRadius: 100, 
-    position: "absolute", 
-    bottom: 50, 
-    right: 20, 
-    zIndex: 2,
+    borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
