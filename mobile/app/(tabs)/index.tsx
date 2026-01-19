@@ -12,6 +12,7 @@ import Configurator from '../../components/screens/Configurator'
 import TransitionOverlay, { TransitionOverlayRef } from '../../components/ui/TransitionOverlay';
 import * as SplashScreen from 'expo-splash-screen';
 import { Asset } from 'expo-asset';
+import * as Haptics from 'expo-haptics';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -138,7 +139,7 @@ export default function App() {
 
       case 'onboarding':
         return <View style={styles.container}>
-            <TouchableOpacity style={styles.button} onPress={leaveSession}><Image source={require("../../assets/icons/leave.png")} style={styles.leaveIcon} /><Text style={styles.buttonText}>Quitter la session</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { leaveSession() })}><Image source={require("../../assets/icons/leave.png")} style={styles.leaveIcon} /><Text style={styles.buttonText}>Quitter la session</Text></TouchableOpacity>
             <View style={styles.componentContainer}>
               <ImageBackground source={require("../../assets/img/bg.png")} resizeMode="cover" style={styles.componentContainer}>
                 <Onboarding 
@@ -155,7 +156,7 @@ export default function App() {
 
       case 'tuto':
         return <View style={styles.container}>
-            <TouchableOpacity style={styles.button} onPress={leaveSession}><Image source={require("../../assets/icons/leave.png")} style={styles.leaveIcon} /><Text style={styles.buttonText}>Quitter la session</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { leaveSession() })}><Image source={require("../../assets/icons/leave.png")} style={styles.leaveIcon} /><Text style={styles.buttonText}>Quitter la session</Text></TouchableOpacity>
             <View style={styles.componentContainer}>
               <ImageBackground source={require("../../assets/img/bg.png")} resizeMode="cover" style={styles.componentContainer}>
                 <Tuto userName={userName} onComplete={() => { switchViewWithTransition('configurator'); }} />
@@ -166,7 +167,7 @@ export default function App() {
       case 'configurator':
         if (!userName || !roomId || !socket) return null;
         return <View style={styles.container}>
-            <TouchableOpacity style={styles.button} onPress={leaveSession}><Image source={require("../../assets/icons/leave.png")} style={styles.leaveIcon} /><Text style={styles.buttonText}>Quitter la session</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { leaveSession() })}><Image source={require("../../assets/icons/leave.png")} style={styles.leaveIcon} /><Text style={styles.buttonText}>Quitter la session</Text></TouchableOpacity>
             <View style={styles.componentContainerConfig}>
               <ImageBackground source={require("../../assets/img/bg.png")} resizeMode="cover" style={styles.componentContainerConfig}>
                 <Configurator key={roomId} userName={userName} roomId={roomId} socket={socket} isModelAppear={isModelAppear}/>

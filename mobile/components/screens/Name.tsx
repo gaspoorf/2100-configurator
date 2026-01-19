@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions, Keyboard, Platform } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import Animated, { FadeIn, FadeOut, useSharedValue, withSpring, useAnimatedStyle  } from 'react-native-reanimated';
-
+import * as Haptics from 'expo-haptics';
 
 type Props = {
   onComplete: (userName: string) => void;
@@ -100,7 +100,7 @@ export default function Name({ onComplete }: Props) {
               styles.button,
               !userName && step === 0 && styles.buttonDisabled,
             ]}
-            onPress={handleNext}
+            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleNext() })}
             disabled={step === 0 && !userName}
           >
             <Image

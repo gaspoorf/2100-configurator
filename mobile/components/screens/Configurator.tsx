@@ -24,6 +24,7 @@ import Animated, {
     withSequence,
     withTiming
 } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 
 // Sensor 
@@ -382,7 +383,8 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             {isModelTurned && (
                 <View style={styles.buttons}>
                     {currentStep === steps.length - 1 && (
-                        <TouchableOpacity onPress={() => { handleFeedbacks(); sendShowResult(); }} style={[styles.button, { width: 'auto'}]}>
+
+                        <TouchableOpacity onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{handleFeedbacks(); sendShowResult();})} style={[styles.button, { width: 'auto'}]}>
                             <Text style={styles.buttonText}>Voir le résultat de {userName}</Text>
                         </TouchableOpacity>
                     )}
@@ -392,7 +394,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             {isModelTurned && feedbackIsShown && (
                 <Animated.View entering={FadeIn.duration(400)} exiting={FadeOutDown.duration(300)} style={styles.ResultsPanel}>
 
-                    <TouchableOpacity onPress={() => { closeResult(); sendCloseResult(); }} style={[styles.button, styles.buttonClose]}>
+                    <TouchableOpacity onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{closeResult(); sendCloseResult();})} style={[styles.button, styles.buttonClose]}>
                         <Image
                             source={require("../../assets/icons/close.png")}
                             style={styles.buttonCloseIcon}
@@ -414,7 +416,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                         </Animated.View>
                     
                         <Animated.View entering={FadeInDown.delay(500).springify()} style={styles.buttonExplanations}>
-                            <TouchableOpacity onPress={() => { handleResult(); sendShowExplanations(); }} style={[styles.button, { width: 'auto'}]}>
+                            <TouchableOpacity  onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{handleResult(); sendShowExplanations();})} style={[styles.button, { width: 'auto'}]}>
                                 <Text style={styles.buttonText}>Comprendre ses erreurs</Text>
                             </TouchableOpacity>
                         </Animated.View>
@@ -435,7 +437,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             {isModelTurned && resultIsShown && (
                 <Animated.View entering={FadeIn.duration(400)} exiting={FadeOutUp.duration(300)} style={styles.ResultsPanel}>
 
-                    <TouchableOpacity onPress={() => { closeResult(); sendCloseResult(); }} style={[styles.button, styles.buttonClose]}>
+                    <TouchableOpacity onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{closeResult(); sendCloseResult();})}  style={[styles.button, styles.buttonClose]}>
                         <Image
                             source={require("../../assets/icons/close.png")}
                             style={styles.buttonCloseIcon}
@@ -451,7 +453,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => handleQuestionClick(0)}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(0); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -473,7 +475,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => handleQuestionClick(1)}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(1); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -497,7 +499,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => handleQuestionClick(2)}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(2); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -519,7 +521,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => handleQuestionClick(3)}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(3); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -543,7 +545,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => handleQuestionClick(4)}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(4); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -565,7 +567,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => handleQuestionClick(5)}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(5); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -589,7 +591,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => handleQuestionClick(6)}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(6); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -611,7 +613,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => handleQuestionClick(7)}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(7); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,

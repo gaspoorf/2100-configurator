@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { useFrame, ThreeEvent } from "@react-three/fiber/native";
 import { useGLTF } from "@react-three/drei";
 import { Asset } from "expo-asset";
+import * as Haptics from 'expo-haptics';
 
 export type ModelProps = {
     plane: number;
@@ -127,6 +128,11 @@ export const Model = React.memo(function Model({
     // const START_ROTATION_Z = 0;
     // const START_ROTATION_X = 0;
 
+
+    // haptics dragg
+    const lastCursorHapticValue = useRef(0);
+    // Pour suivre la dernière rotation de la gear qui a vibré
+    const lastGearHapticRotation = useRef(0);
 
     // reset anim et boutons
     const resetAnim = useRef<Record<string, { progress: number; active: boolean }>>({});
@@ -416,6 +422,11 @@ export const Model = React.memo(function Model({
         if (!name) return;
         (e.target as Element).setPointerCapture(e.pointerId);
 
+        const triggerHaptic = () => {
+            // Light pour un clic subtil, Medium pour un clic plus franc
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        };
+
         const setupDrag = (cursor: THREE.Object3D, plane: THREE.Plane) => {
             if (e.ray.intersectPlane(plane, intersection.current)) {
                 if (cursor.parent) {
@@ -432,14 +443,17 @@ export const Model = React.memo(function Model({
 
         if (name === "1" && cursor1.current && plane1.current) {
             dragging1.current = true;
+            lastCursorHapticValue.current = plane;
             setupDrag(cursor1.current, plane1.current);
         }
         if (name === "5" && cursor5.current && plane5.current) {
             dragging5.current = true;
+            lastCursorHapticValue.current = products;
             setupDrag(cursor5.current, plane5.current);
         }
         if (name === "8" && cursor8.current && plane8.current) {
             dragging8.current = true;
+            lastCursorHapticValue.current = clothes;
             setupDrag(cursor8.current, plane8.current);
         }
 
@@ -449,16 +463,22 @@ export const Model = React.memo(function Model({
             "2c": 100,
         };
         if (["2a", "2b", "2c"].includes(name)) {
+            triggerHaptic();
             const key = name as "2a" | "2b" | "2c";
             pressed2.current = key;
             onTransportChange(transportsBtn[key]);
             onReveal();
         }
 
-        if (name === "3") { onPromptIAChange(); onReveal(); }
-        if (name === "4") { onMeatChange(); onReveal(); }
-        if (["6a", "6b"].includes(name)) { pressed6.current = name; onPhoneChange(name === "6a" ? 100 : 0); onReveal(); }
-        if (name === "7") { onEnergyChange(); onReveal(); }
+        if (name === "3") { triggerHaptic(); onPromptIAChange(); onReveal(); }
+        if (name === "4") { triggerHaptic(); onMeatChange(); onReveal(); }
+        if (["6a", "6b"].includes(name)) { 
+            triggerHaptic();
+            pressed6.current = name; 
+            onPhoneChange(name === "6a" ? 100 : 0); 
+            onReveal(); 
+        }
+        if (name === "7") {triggerHaptic(); onEnergyChange(); onReveal(); }
 
         const spotMap: Record<"spot-1" | "spot-2" | "spot-3", number> = {
             "spot-1": 1,
@@ -467,10 +487,12 @@ export const Model = React.memo(function Model({
         };
 
         if (["spot-1", "spot-2", "spot-3"].includes(name)) {
+            triggerHaptic();
             pressedSpot.current = name;
             onCameraMovement("CAMERA_SPOT", spotMap[name as "spot-1" | "spot-2" | "spot-3"]);
         }
         if (name === "reset") {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             const anim = resetAnim.current[name];
             if (anim) {
                 anim.active = true;
@@ -480,6 +502,7 @@ export const Model = React.memo(function Model({
             onResetClick();
         }
         if (name === "gear-real" && isGearActive.current) {
+            triggerHaptic();
             draggingGear.current = true;
             gearTarget.current = gearCurrent.current;
             
@@ -541,6 +564,14 @@ export const Model = React.memo(function Model({
                 new THREE.Vector3(0, 0, 1),
                 gearPos
             );
+
+            const GEAR_NOTCH_STEP = 0.2; 
+    
+            // On vérifie la différence entre la cible actuelle et la dernière vibration
+            if (Math.abs(gearTarget.current - lastGearHapticRotation.current) >= GEAR_NOTCH_STEP) {
+                Haptics.selectionAsync(); // <--- Le "Tic" mécanique
+                lastGearHapticRotation.current = gearTarget.current;
+            }
             
             const hit = state.raycaster.ray.intersectPlane(gearPlane.current, intersection.current);
             if (hit) {
@@ -574,6 +605,14 @@ export const Model = React.memo(function Model({
             if (pos) {
                 const min = -1.9, max = 3.2;
                 const val = THREE.MathUtils.mapLinear(Math.max(min, Math.min(max, pos.x - dragOffset.current.x)), min, max, 0, 100);
+                
+                const HAPTIC_STEP = 5; 
+        
+                if (Math.abs(val - lastCursorHapticValue.current) >= HAPTIC_STEP) {
+                    Haptics.selectionAsync();
+                    lastCursorHapticValue.current = val;
+                }
+                
                 if (now - lastCallTime.current > THROTTLE_DELAY) {
                     onPlaneChange(val);
                     lastPlane.current = val;
@@ -588,6 +627,14 @@ export const Model = React.memo(function Model({
             if (pos) {
                 const min = -4.6, max = -0.8;
                 const val = THREE.MathUtils.mapLinear(Math.max(min, Math.min(max, pos.y - dragOffset.current.y)), min, max, 100, 0);
+                
+                const HAPTIC_STEP = 5; 
+        
+                if (Math.abs(val - lastCursorHapticValue.current) >= HAPTIC_STEP) {
+                    Haptics.selectionAsync();
+                    lastCursorHapticValue.current = val;
+                }
+                
                 if (now - lastCallTime.current > THROTTLE_DELAY) {
                     onProductsChange(val);
                     lastProducts.current = val;
@@ -602,6 +649,14 @@ export const Model = React.memo(function Model({
             if (pos) {
                 const min = -2.2, max = 5.7;
                 const val = THREE.MathUtils.mapLinear(Math.max(min, Math.min(max, pos.x - dragOffset.current.x)), max, min, 0, 100);
+                
+                const HAPTIC_STEP = 5; 
+        
+                if (Math.abs(val - lastCursorHapticValue.current) >= HAPTIC_STEP) {
+                    Haptics.selectionAsync();
+                    lastCursorHapticValue.current = val;
+                }
+
                 if (now - lastCallTime.current > THROTTLE_DELAY) {
                     onClothesChange(val);
                     lastClothes.current = val;

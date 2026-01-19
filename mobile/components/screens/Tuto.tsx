@@ -147,7 +147,7 @@ export default function Tuto({ userName, onComplete }: Props) {
                 {step === 0 && (
                     <TouchableOpacity
                         style={[styles.button, styles.button]}
-                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).then(handleNext)}
+                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleNext() })}
                     >
                         <Image
                             source={require("../../assets/icons/arrow.png")}
@@ -160,7 +160,7 @@ export default function Tuto({ userName, onComplete }: Props) {
                     <>
                         <TouchableOpacity
                             style={[styles.button, styles.button]}
-                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).then(handlePrev)}
+                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handlePrev() })}
                         >
                             <Image
                                 source={require("../../assets/icons/arrow.png")}
@@ -170,7 +170,7 @@ export default function Tuto({ userName, onComplete }: Props) {
 
                         <TouchableOpacity
                             style={[styles.button, styles.button]}
-                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).then(handleNext)}
+                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleNext() })}
                         >
                             <Image
                                 source={require("../../assets/icons/arrow.png")}
