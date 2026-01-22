@@ -1,5 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useRef } from "react";
-import { Animated, Text, Dimensions, Image, StyleSheet } from "react-native";
+import { Animated, Text, Dimensions, StyleSheet } from "react-native";
+import { Video, ResizeMode } from 'expo-av';
 
 export type TransitionOverlayRef = {
   play: (onMiddle: () => void, onComplete?: () => void) => void;
@@ -38,9 +39,13 @@ const TransitionOverlay = forwardRef<TransitionOverlayRef>((props, ref) => {
         { opacity }
       ]}
     >
-      <Image
-        source={require("../../assets/img/hero.png")}
+      <Video
+        source={require("../../assets/videos/loading.mp4")}
         style={styles.image}
+        isLooping={true}
+        isMuted={true}
+        shouldPlay={true}
+        useNativeControls={false}
       />
       <Text style={styles.text}>Attend un peu, {"\n"} on installe le décor...</Text>
     </Animated.View>
@@ -57,7 +62,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "110%",
     zIndex: 9999,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F4F3EF",
     justifyContent: "center",
     alignItems: "center",
     display: "flex",

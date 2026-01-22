@@ -1,8 +1,11 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions, Keyboard, Platform } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import Animated, { FadeIn, FadeOut, useSharedValue, withSpring, useAnimatedStyle  } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useAudioPlayer } from 'expo-audio';
+
+const audioClick = require('../../assets/audio/clickui.wav');
 
 type Props = {
   onComplete: (userName: string) => void;
@@ -18,6 +21,8 @@ export default function Name({ onComplete }: Props) {
   const video = useRef(null);
   const [showContent, setShowContent] = useState(true);
   const keyboardHeight = useSharedValue(0);
+
+  const playerClick = useAudioPlayer(audioClick);
 
   // btn qui reste en haut du clavier
   useEffect(() => {
@@ -81,7 +86,7 @@ export default function Name({ onComplete }: Props) {
               <Video
                 style={styles.video}
                 ref={video}
-                source={require('../../assets/videos/dance.mp4')}
+                source={require('../../assets/videos/naming.mp4')}
                 isLooping={true}
                 isMuted={true}
                 shouldPlay={true}
@@ -100,7 +105,7 @@ export default function Name({ onComplete }: Props) {
               styles.button,
               !userName && step === 0 && styles.buttonDisabled,
             ]}
-            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleNext() })}
+            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleNext(), playerClick.play() })}
             disabled={step === 0 && !userName}
           >
             <Image
@@ -154,8 +159,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 },
+    boxShadow: "-7px 14px 6px rgba(0, 0, 0, 0.02), -4px 8px 5px rgba(0, 0, 0, 0.06), -2px 3px 4px rgba(0, 0, 0, 0.1), 0px 1px 2px rgba(0, 0, 0, 0.12), -11px 21px 7px rgba(0, 0, 0, 0)",
     shadowOpacity: 0.3,
     width: 64,
     height: 64,
@@ -204,7 +208,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     height: '100%',
-    bottom: 0,
+    bottom: 50,
   },
   video: {
     bottom: 0,

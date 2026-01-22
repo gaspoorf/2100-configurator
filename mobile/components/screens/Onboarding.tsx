@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import * as Haptics from 'expo-haptics';
+import { useAudioPlayer } from 'expo-audio';
 import Animated, { 
   BounceIn, 
   BounceOut, 
@@ -14,6 +15,8 @@ import Animated, {
   useDerivedValue
 } from 'react-native-reanimated';
 
+const audioClick = require('../../assets/audio/clickui.wav');
+const audioFinish = require('../../assets/audio/confirmation.wav');
 
 type Props = {
   userName: string | null;
@@ -51,6 +54,23 @@ export default function Onboarding({ userName, onComplete }: Props) {
   const [step, setStep] = useState(0);
   const video = useRef(null);
   const [showContent, setShowContent] = useState(true);
+
+  const playerClick = useAudioPlayer(audioClick);
+  const playerFinish = useAudioPlayer(audioFinish);
+
+  const handlePress = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    playerClick.seekTo(0);
+    playerClick.play();
+    handleNext();
+  };
+
+  const handleFinish = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    playerFinish.seekTo(0);
+    playerFinish.play();
+    handleNext();
+  };
 
 
   const handleNext = () => {
@@ -94,25 +114,19 @@ export default function Onboarding({ userName, onComplete }: Props) {
 
       {showContent && (
         <Animated.View style={styles.videoContainer} entering={FadeIn.delay(300).duration(300)} exiting={FadeOut.duration(300)}>
-          <Image
+          <Video
             style={styles.video}
-            source={require("../../assets/img/hero.png")}
-          />
-          {/* <Video
-            style={styles.video}
-            ref={video}
-            source={require('../../assets/videos/dance.mp4')}
+            source={require("../../assets/videos/onboarding.mp4")}
             isLooping={true}
             isMuted={true}
             shouldPlay={true}
-            resizeMode={ResizeMode.COVER}
             useNativeControls={false}
-          /> */}
+          />
         </Animated.View >
       )}
 
       <TouchableOpacity
-        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(handleNext)}
+        onPress={step === ONBOARDING_STEPS.length - 1 ? handleFinish : handlePress}
         style={[
           styles.button,
           !userName && step === 0 && styles.buttonDisabled,
@@ -170,6 +184,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     margin: 0,
+    zIndex: 2,
   },
   dot: {
     height: 5,
@@ -250,14 +265,20 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     padding: 0, 
     paddingVertical: 0,
-    position: 'relative',
+    position: 'absolute',
     bottom: 0,
+    width: '110%',
+    height: '100%',
+    margin: 0,
+    left: 0,
+    right: 0,
+
   },
   video: {
-    bottom: -210,
+    bottom: 0,
     position: 'absolute', 
-    width: '300%',
-    height: '150%',
+    width: '110%',
+    height: '110%',
     zIndex: 0, 
   },
 });

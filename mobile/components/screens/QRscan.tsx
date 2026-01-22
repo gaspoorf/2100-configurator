@@ -1,7 +1,11 @@
 import { useCameraPermissions, CameraView } from "expo-camera";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View, StyleSheet, Text, Image, Pressable, StatusBar, Platform } from "react-native";
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { useAudioPlayer } from 'expo-audio';
+
+const audioConfirmation = require('../../assets/audio/confirmation.wav');
+
 
 type Props = {
     onComplete: (roomId: string) => void;
@@ -9,8 +13,15 @@ type Props = {
 
 export default function QRScan({ onComplete }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
-
   const [showContent, setShowContent] = useState(true);
+
+    const playerConfirmation = useAudioPlayer(audioConfirmation);
+    const playSound = useCallback(() => {
+      playerConfirmation.seekTo(0);
+      playerConfirmation.play();
+    }, [playerConfirmation]);
+
+    
 
   useEffect(() => {
     if (permission && permission.status === "denied") {
@@ -28,6 +39,7 @@ export default function QRScan({ onComplete }: Props) {
   const handleScan = ({ data }: { data: string }) => {
     if (!data || !showContent) return;
     
+    playSound();
     setShowContent(false);
     onComplete(data);
   };

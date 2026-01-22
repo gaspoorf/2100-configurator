@@ -155,11 +155,12 @@ export default function App() {
           </View>
 
       case 'tuto':
+        if (!userName || !roomId || !socket) return null;
         return <View style={styles.container}>
             <TouchableOpacity style={styles.button} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { leaveSession() })}><Image source={require("../../assets/icons/leave.png")} style={styles.leaveIcon} /><Text style={styles.buttonText}>Quitter la session</Text></TouchableOpacity>
             <View style={styles.componentContainer}>
               <ImageBackground source={require("../../assets/img/bg.png")} resizeMode="cover" style={styles.componentContainer}>
-                <Tuto userName={userName} onComplete={() => { switchViewWithTransition('configurator'); }} />
+                <Tuto userName={userName} roomId={roomId} socket={socket} values={0} onComplete={() => { switchViewWithTransition('configurator'); }} />
               </ImageBackground>
             </View>
           </View>

@@ -4,6 +4,12 @@ import { useFrame, ThreeEvent } from "@react-three/fiber/native";
 import { useGLTF } from "@react-three/drei";
 import { Asset } from "expo-asset";
 import * as Haptics from 'expo-haptics';
+import { useAudioPlayer } from 'expo-audio';
+
+const audioClick = require('../../assets/audio/click.wav');
+const audioRotate = require('../../assets/audio/rotate.wav');
+const audioGear = require('../../assets/audio/gear.wav');
+const audioSlider = require('../../assets/audio/slider.wav');
 
 export type ModelProps = {
     plane: number;
@@ -27,7 +33,6 @@ export type ModelProps = {
     onAppearFinished?: () => void;
     resultIsShown: boolean;
     feedbackIsShown: boolean;
-    onReveal: (overrides?: any) => void;
     onCameraMovement: (type: string, value: number) => void;
     onYearChange: (value: number) => void;
     onResetClick: () => void;
@@ -52,12 +57,11 @@ export const Model = React.memo(function Model({
     isModelTurned,
     isModelAppear,
     onAppearFinished,
-    onReveal,
     onCameraMovement,
     onYearChange,
     onResetClick,
 }: ModelProps) {
-    const asset = Asset.fromModule(require("../../assets/3d/config-only-color.glb"));
+    const asset = Asset.fromModule(require("../../assets/3d/configurator.glb"));
     if (!asset.localUri) asset.downloadAsync();
     const gltf = useGLTF(asset.localUri || asset.uri) as any;
 
@@ -92,13 +96,38 @@ export const Model = React.memo(function Model({
     const pressedSpot = useRef<string | null>(null);
 
     const button2 = useRef<Record<string, THREE.Object3D | null>>({});
+    const button2Stickers = useRef<Record<string, THREE.Object3D | null>>({});
+
     const button3 = useRef<Record<string, THREE.Object3D | null>>({});
     const button4 = useRef<Record<string, THREE.Object3D | null>>({});
     const button6 = useRef<Record<string, THREE.Object3D | null>>({});
+    const button6Stickers = useRef<Record<string, THREE.Object3D | null>>({});
+
     const button7 = useRef<Record<string, THREE.Object3D | null>>({});
+
+    
+    // Refs pour le bouton 3
+    const draggingButton3 = useRef(false);
+    const button3StartAngle = useRef(0);
+    const button3CurrentRotation = useRef(0);
+    const button3Plane = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
+    const lastButton3HapticPosition = useRef(0);
+
+    // Refs pour le bouton 7
+    const draggingButton7 = useRef(false);
+    const button7StartAngle = useRef(0);
+    const button7CurrentRotation = useRef(0);
+    const button7Plane = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
+    const lastButton7HapticPosition = useRef(0);
+
+
+
     const spots = useRef<Record<string, THREE.Object3D | null>>({});
+    const spotsStickers = useRef<Record<string, THREE.Object3D | null>>({});
 
     const reset = useRef<Record<string, THREE.Object3D | null>>({});
+    const resetSticker = useRef<Record<string, THREE.Object3D | null>>({});
+
     const pressedReset = useRef<string | null>(null);
 
     const realGear = useRef<THREE.Mesh | null>(null);
@@ -145,6 +174,12 @@ export const Model = React.memo(function Model({
         dragging5.current = false;
         dragging8.current = false;
         draggingGear.current = false;
+
+        draggingButton3.current = false;
+        draggingButton7.current = false;
+        button3CurrentRotation.current = 0;
+        button7CurrentRotation.current = 0;
+
         gearTarget.current = 0;
         gearCurrent.current = 0;
         gearAccum.current = 0;
@@ -186,6 +221,32 @@ export const Model = React.memo(function Model({
         if (cursor8.current) cursor8.current.position.x = 0;
     }, []);
 
+    const player = useAudioPlayer(audioClick);
+    const playSound = useCallback(() => {
+        player.seekTo(0);
+        player.play();
+    }, [player]);
+
+    
+    const playerRotate = useAudioPlayer(audioRotate);
+    const playRotate = useCallback(() => {
+        playerRotate.seekTo(0);
+        playerRotate.play();
+    }, [playerRotate]);
+
+    const playerGear = useAudioPlayer(audioGear);
+    const playGear = useCallback(() => {
+        playerGear.seekTo(0);
+        playerGear.play();
+    }, [playerGear]);
+
+    const playerSlider = useAudioPlayer(audioSlider);
+    const playSlider = useCallback(() => {
+        playerSlider.seekTo(0);
+        playerSlider.play();
+    }, [playerSlider]);
+
+
 
     useEffect(() => {
         if (!gltf?.scene) return;
@@ -222,6 +283,27 @@ export const Model = React.memo(function Model({
                 child.getWorldPosition(p);
                 plane8.current = new THREE.Plane(new THREE.Vector3(0, 0, 1), -p.z);
             }
+            if (["stick2a", "stick2b", "stick2c"].includes(child.name)) {
+                button2Stickers.current[child.name] = child;
+                child.raycast = () => null;
+                child.position.z += 0.001;
+
+                const mat = child.material as THREE.MeshStandardMaterial;
+                mat.depthWrite = false;
+                mat.depthTest = true;
+
+                if (mat.map) {
+                    mat.map.minFilter = THREE.LinearFilter;
+                    mat.map.magFilter = THREE.LinearFilter;
+                    mat.map.generateMipmaps = false;
+                    mat.map.needsUpdate = true;
+                }
+
+                mat.polygonOffset = true;
+                mat.polygonOffsetFactor = -1;
+                mat.polygonOffsetUnits = -1;
+            }
+
 
             if (["2a", "2b", "2c"].includes(child.name)) {
                 button2.current[child.name] = child;
@@ -230,11 +312,37 @@ export const Model = React.memo(function Model({
             if (child.name === "3") {
                 button3.current[child.name] = child;
                 child.userData.initial = child.rotation.y;
+
+                const p = new THREE.Vector3();
+                child.getWorldPosition(p);
+                button3Plane.current = new THREE.Plane(new THREE.Vector3(0, 0, 1), -p.z);
             }
             if (child.name === "4") {
                 button4.current[child.name] = child;
                 child.userData.initial = child.rotation.z;
             }
+
+            if (["stick6a", "stick6b"].includes(child.name)) {
+                button6Stickers.current[child.name] = child;
+                child.raycast = () => null;
+                child.position.z += 0.001;
+
+                const mat = child.material as THREE.MeshStandardMaterial;
+                mat.depthWrite = false;
+                mat.depthTest = true;
+
+                if (mat.map) {
+                    mat.map.minFilter = THREE.LinearFilter;
+                    mat.map.magFilter = THREE.LinearFilter;
+                    mat.map.generateMipmaps = false;
+                    mat.map.needsUpdate = true;
+                }
+
+                mat.polygonOffset = true;
+                mat.polygonOffsetFactor = -1;
+                mat.polygonOffsetUnits = -1;
+            }
+
             if (["6a", "6b"].includes(child.name)) {
                 button6.current[child.name] = child;
                 child.userData.initialZ = child.position.z;
@@ -242,16 +350,61 @@ export const Model = React.memo(function Model({
             if (child.name === "7") {
                 button7.current[child.name] = child;
                 child.userData.initial = child.rotation.y;
+
+                const p = new THREE.Vector3();
+                child.getWorldPosition(p);
+                button7Plane.current = new THREE.Plane(new THREE.Vector3(0, 0, 1), -p.z);
             }
-            if (["spot-1", "spot-2", "spot-3"].includes(child.name)) {
+            if (["spot1", "spot2", "spot3"].includes(child.name)) {
                 spots.current[child.name] = child;
                 child.userData.initialZ = child.position.z;
+            }
+            if (["stickzspot1", "stickzspot2", "stickzspot3"].includes(child.name)) {
+                spotsStickers.current[child.name] = child;
+                child.userData.initialZ = child.position.z;
+                child.raycast = () => null;
+                child.position.z += 0.001;
+
+                const mat = child.material as THREE.MeshStandardMaterial;
+                mat.depthWrite = false;
+                mat.depthTest = true;
+
+                if (mat.map) {
+                    mat.map.minFilter = THREE.LinearFilter;
+                    mat.map.magFilter = THREE.LinearFilter;
+                    mat.map.generateMipmaps = false;
+                    mat.map.needsUpdate = true;
+                }
+
+                mat.polygonOffset = true;
+                mat.polygonOffsetFactor = -1;
+                mat.polygonOffsetUnits = -1;
             }
             if (child.name === "reset") {
                 reset.current[child.name] = child;
                 child.userData.initialZ = child.position.z;
 
                 resetAnim.current[child.name] = { progress: 0, active: false };
+            }
+            if (["stickreset"].includes(child.name)) {
+                resetSticker.current[child.name] = child;
+                child.raycast = () => null;
+                child.position.z += 0.001;
+
+                const mat = child.material as THREE.MeshStandardMaterial;
+                mat.depthWrite = false;
+                mat.depthTest = true;
+
+                if (mat.map) {
+                    mat.map.minFilter = THREE.LinearFilter;
+                    mat.map.magFilter = THREE.LinearFilter;
+                    mat.map.generateMipmaps = false;
+                    mat.map.needsUpdate = true;
+                }
+
+                mat.polygonOffset = true;
+                mat.polygonOffsetFactor = -1;
+                mat.polygonOffsetUnits = -1;
             }
         });
     }, [gltf]);
@@ -362,11 +515,21 @@ export const Model = React.memo(function Model({
             if (!b) return;
             const z = pressed2.current === k ? b.userData.initialZ - 0.3 : b.userData.initialZ;
             b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.5);
+
+            const sticker = button2Stickers.current[`stick${k}`];
+            if (sticker) {
+                sticker.position.z = THREE.MathUtils.lerp(
+                    sticker.position.z,
+                    z,
+                    0.5
+                );
+            }
         });
+        
 
         Object.values(button3.current).forEach((b: any) => {
-            const i = promptIA === 0 ? 0 : promptIA === 50 ? 1 : 2;
-            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, b.userData.initial - [0, -1.2, -2.5][i], 0.5);
+            const i = promptIA === 50 ? 0 : promptIA === 0 ? 1 : 2;
+            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, b.userData.initial + [0, -0.9, 0.9][i], 0.2);
         });
 
         Object.values(button4.current).forEach((b: any) => {
@@ -378,18 +541,36 @@ export const Model = React.memo(function Model({
             if (!b) return;
             const z = pressed6.current === k ? b.userData.initialZ - 0.2 : b.userData.initialZ;
             b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.5);
+
+            const sticker = button6Stickers.current[`stick${k}`];
+            if (sticker) {
+                sticker.position.z = THREE.MathUtils.lerp(
+                    sticker.position.z,
+                    z,
+                    0.5
+                );
+            }
         });
 
         Object.values(button7.current).forEach((b: any) => {
             if (!b) return;
-            const i = energy === 0 ? 0 : energy === 33 ? 0. : energy === 66 ? 2 : 3;
-            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, b.userData.initial - [-1, -1.3, -2.5, -3][i], 0.05);
+            const i = energy === 100 ? 0 : energy === 0 ? 1 : energy === 66 ? 2 : 3;
+            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, b.userData.initial + [0, 1.57, -1.57, -3.14][i], 0.2);
         });
 
         Object.entries(spots.current).forEach(([k, b]) => {
             if (!b) return;
-            const z = pressedSpot.current === k ? b.userData.initialZ - (-0.3) : b.userData.initialZ;
+            const z = pressedSpot.current === k ? b.userData.initialZ + 0.3 : b.userData.initialZ;
             b.position.z = THREE.MathUtils.lerp(b.position.z, z, 0.2);
+
+            const sticker = spotsStickers.current[`stickz${k}`];
+            if (sticker) {
+                sticker.position.z = THREE.MathUtils.lerp(
+                    sticker.position.z,
+                    sticker.userData.initialZ + (z - b.userData.initialZ),
+                    0.2
+                );
+            }
         });
 
         Object.entries(reset.current).forEach(([name, b]) => {
@@ -423,7 +604,6 @@ export const Model = React.memo(function Model({
         (e.target as Element).setPointerCapture(e.pointerId);
 
         const triggerHaptic = () => {
-            // Light pour un clic subtil, Medium pour un clic plus franc
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         };
 
@@ -442,16 +622,19 @@ export const Model = React.memo(function Model({
         };
 
         if (name === "1" && cursor1.current && plane1.current) {
+            playSlider();
             dragging1.current = true;
             lastCursorHapticValue.current = plane;
             setupDrag(cursor1.current, plane1.current);
         }
         if (name === "5" && cursor5.current && plane5.current) {
+            playSlider();
             dragging5.current = true;
             lastCursorHapticValue.current = products;
             setupDrag(cursor5.current, plane5.current);
         }
         if (name === "8" && cursor8.current && plane8.current) {
+            playSlider();
             dragging8.current = true;
             lastCursorHapticValue.current = clothes;
             setupDrag(cursor8.current, plane8.current);
@@ -464,35 +647,71 @@ export const Model = React.memo(function Model({
         };
         if (["2a", "2b", "2c"].includes(name)) {
             triggerHaptic();
+            playSound();
             const key = name as "2a" | "2b" | "2c";
             pressed2.current = key;
             onTransportChange(transportsBtn[key]);
-            onReveal();
         }
 
-        if (name === "3") { triggerHaptic(); onPromptIAChange(); onReveal(); }
-        if (name === "4") { triggerHaptic(); onMeatChange(); onReveal(); }
+        if (name === "3") {
+            triggerHaptic();
+            playRotate();
+            draggingButton3.current = true;
+            lastButton3HapticPosition.current = promptIA;
+            
+            const button = button3.current["3"];
+            if (button && e.ray.intersectPlane(button3Plane.current, intersection.current)) {
+                const buttonPos = new THREE.Vector3();
+                button.getWorldPosition(buttonPos);
+                
+                const dx = intersection.current.x - buttonPos.x;
+                const dy = intersection.current.y - buttonPos.y;
+                button3StartAngle.current = Math.atan2(dy, dx);
+                button3CurrentRotation.current = button.rotation.y;
+            }
+        }
+
+        if (name === "4") { triggerHaptic(); onMeatChange(); playSound();}
         if (["6a", "6b"].includes(name)) { 
             triggerHaptic();
+            playSound();
             pressed6.current = name; 
-            onPhoneChange(name === "6a" ? 100 : 0); 
-            onReveal(); 
+            onPhoneChange(name === "6a" ? 100 : 0);  
         }
-        if (name === "7") {triggerHaptic(); onEnergyChange(); onReveal(); }
+        
+        if (name === "7") {
+            triggerHaptic();
+            playRotate();
+            draggingButton7.current = true;
+            lastButton7HapticPosition.current = energy;
+            
+            const button = button7.current["7"];
+            if (button && e.ray.intersectPlane(button7Plane.current, intersection.current)) {
+                const buttonPos = new THREE.Vector3();
+                button.getWorldPosition(buttonPos);
+                
+                const dx = intersection.current.x - buttonPos.x;
+                const dy = intersection.current.y - buttonPos.y;
+                button7StartAngle.current = Math.atan2(dy, dx);
+                button7CurrentRotation.current = button.rotation.y;
+            }
+        }
 
-        const spotMap: Record<"spot-1" | "spot-2" | "spot-3", number> = {
-            "spot-1": 1,
-            "spot-2": 2,
-            "spot-3": 3,
+        const spotMap: Record<"spot1" | "spot2" | "spot3", number> = {
+            "spot1": 1,
+            "spot2": 2,
+            "spot3": 3,
         };
 
-        if (["spot-1", "spot-2", "spot-3"].includes(name)) {
+        if (["spot1", "spot2", "spot3"].includes(name)) {
             triggerHaptic();
+            playSound();
             pressedSpot.current = name;
-            onCameraMovement("CAMERA_SPOT", spotMap[name as "spot-1" | "spot-2" | "spot-3"]);
+            onCameraMovement("CAMERA_SPOT", spotMap[name as "spot1" | "spot2" | "spot3"]);
         }
         if (name === "reset") {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            playSound();
             const anim = resetAnim.current[name];
             if (anim) {
                 anim.active = true;
@@ -502,6 +721,7 @@ export const Model = React.memo(function Model({
             onResetClick();
         }
         if (name === "gear-real" && isGearActive.current) {
+            playGear();
             triggerHaptic();
             draggingGear.current = true;
             gearTarget.current = gearCurrent.current;
@@ -523,24 +743,184 @@ export const Model = React.memo(function Model({
         if (name === "gear-fake") {
             fakeGear.current!.visible = false;
         }
-    }, [onTransportChange, onPromptIAChange, onMeatChange, onPhoneChange, onEnergyChange, onReveal, onCameraMovement, onResetClick]);
+    }, [onTransportChange, onPromptIAChange, onMeatChange, onPhoneChange, onEnergyChange, onCameraMovement, onResetClick, playSound]);
 
 
     const onPointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
         (e.target as Element).releasePointerCapture(e.pointerId);
 
-        if (dragging1.current || dragging5.current || dragging8.current) {
-            onReveal();
+        if (draggingButton3.current) {
+            const button = button3.current["3"];
+            if (button) {
+                const initialRotation = button.userData.initial;
+                const positions = [
+                    initialRotation,
+                    initialRotation - 0.9, 
+                    initialRotation + 0.9 
+                ];
+                
+                let closestIndex = 0;
+                let minDiff = Math.abs(button.rotation.y - positions[0]);
+                
+                for (let i = 1; i < positions.length; i++) {
+                    const diff = Math.abs(button.rotation.y - positions[i]);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestIndex = i;
+                    }
+                }
+                
+                const values: Array<0 | 50 | 100> = [50, 0, 100];
+                const targetValue = values[closestIndex];
+                if (targetValue !== promptIA) {
+                    onPromptIAChange();
+                }
+                
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+        }
+        
+        if (draggingButton7.current) {
+            const button = button7.current["7"];
+            if (button) {
+                const initialRotation = button.userData.initial;
+                const positions = [
+                    initialRotation,           // 100 (bas)
+                    initialRotation + 1.57,    // 0 (gauche)
+                    initialRotation - 1.57,    // 66 (droite)
+                    initialRotation - 3.14     // 33 (haut)
+                ];
+                
+                let closestIndex = 0;
+                let minDiff = Math.abs(button.rotation.y - positions[0]);
+                
+                for (let i = 1; i < positions.length; i++) {
+                    const diff = Math.abs(button.rotation.y - positions[i]);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestIndex = i;
+                    }
+                }
+            
+                const values: Array<0 | 33 | 66 | 100> = [100, 0, 66, 33];
+                const targetValue = values[closestIndex];
+                if (targetValue !== energy) {
+                    onEnergyChange();
+                }
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
         }
 
         dragging1.current = false;
+        draggingButton3.current = false;
         dragging5.current = false;
+        draggingButton7.current = false;
         dragging8.current = false;
         draggingGear.current = false;
-    }, []);
+    }, [onPromptIAChange, onEnergyChange, promptIA, energy]);
 
 
     const gearPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
+
+    useFrame((state) => {
+        if (draggingButton3.current) {
+            const button = button3.current["3"];
+            if (button && state.raycaster.ray.intersectPlane(button3Plane.current, intersection.current)) {
+                const buttonPos = new THREE.Vector3();
+                button.getWorldPosition(buttonPos);
+                
+                const dx = intersection.current.x - buttonPos.x;
+                const dy = intersection.current.y - buttonPos.y;
+                const currentAngle = Math.atan2(dy, dx);
+                
+                let deltaAngle = currentAngle - button3StartAngle.current;
+                
+                while (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
+                while (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
+                
+                button.rotation.y = button3CurrentRotation.current + deltaAngle;
+                
+                const initialRotation = button.userData.initial;
+                const positions = [
+                    initialRotation,
+                    initialRotation, 
+                    initialRotation - 0.9,
+                    initialRotation + 0.9
+                ];
+                
+                let closestIndex = 0;
+                let minDiff = Math.abs(button.rotation.y - positions[0]);
+                
+                for (let i = 1; i < positions.length; i++) {
+                    const diff = Math.abs(button.rotation.y - positions[i]);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestIndex = i;
+                    }
+                }
+                
+                const values: Array<0 | 50 | 100> = [50, 0, 100];
+                const newValue = values[closestIndex];
+                if (newValue !== lastButton3HapticPosition.current) {
+                    Haptics.selectionAsync();
+                    lastButton3HapticPosition.current = newValue;
+                }
+            }
+        }
+    
+        // Gestion du bouton 7 rotatif - LE BOUTON SUIT LE DOIGT
+        if (draggingButton7.current) {
+            const button = button7.current["7"];
+            if (button && state.raycaster.ray.intersectPlane(button7Plane.current, intersection.current)) {
+                const buttonPos = new THREE.Vector3();
+                button.getWorldPosition(buttonPos);
+                
+                const dx = intersection.current.x - buttonPos.x;
+                const dy = intersection.current.y - buttonPos.y;
+                const currentAngle = Math.atan2(dy, dx);
+                
+                let deltaAngle = currentAngle - button7StartAngle.current;
+                
+                // Normaliser l'angle entre -PI et PI
+                while (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
+                while (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
+                
+                // NOUVEAU: Le bouton suit directement le doigt
+                button.rotation.y = button7CurrentRotation.current + deltaAngle;
+                
+                // Déterminer la position la plus proche pour le feedback haptique
+                const initialRotation = button.userData.initial;
+                const positions = [
+                    initialRotation,           // 100 (bas)
+                    initialRotation + 1.57,    // 0 (gauche)
+                    initialRotation - 1.57,    // 66 (droite)
+                    initialRotation - 3.14     // 33 (haut)
+                ];
+                
+                let closestIndex = 0;
+                let minDiff = Math.abs(button.rotation.y - positions[0]);
+                
+                for (let i = 1; i < positions.length; i++) {
+                    const diff = Math.abs(button.rotation.y - positions[i]);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestIndex = i;
+                    }
+                }
+                
+                const values: Array<0 | 33 | 66 | 100> = [100, 0, 66, 33];
+                const newValue = values[closestIndex];
+                
+                // Feedback haptique quand on passe près d'une position
+                if (newValue !== lastButton7HapticPosition.current) {
+                    Haptics.selectionAsync();
+                    lastButton7HapticPosition.current = newValue;
+                }
+            }
+        }
+    });
+
+
 
     useFrame((state) => {
         const now = Date.now();

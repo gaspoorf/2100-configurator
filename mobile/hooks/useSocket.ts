@@ -138,8 +138,13 @@ export function useConfiguratorSocket(
     );
 
     const sendResetData = useCallback(() => {
-        emit({ type: "RESET_DATA" });
-        console.log("RESET_DATA envoyé");
+        emit({ type: "RESET_EXPERIENCE" });
+        console.log("RESET_EXPERIENCE envoyé");
+    }, [emit]);
+
+    const sendTutoEnd = useCallback(() => {
+        emit({ type: "TUTO_END" });
+        console.log("TUTO_END envoyé");
     }, [emit]);
 
     return {
@@ -154,5 +159,6 @@ export function useConfiguratorSocket(
         sendShowExplanations,
         sendChangeQuestion,
         sendResetData,
+        sendTutoEnd,
     };
 }

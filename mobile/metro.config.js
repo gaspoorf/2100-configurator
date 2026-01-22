@@ -11,6 +11,7 @@ config.resolver.sourceExts = [
   'cjs',
   'mjs',
   'mp4',
+  'wav',
 ];
 
 config.resolver.assetExts = [
@@ -21,6 +22,7 @@ config.resolver.assetExts = [
   'ttf',
   'mp4',
   'otf',
+  'wav',
 ];
 
 module.exports = config;

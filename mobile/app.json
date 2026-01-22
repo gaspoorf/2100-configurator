@@ -35,6 +35,12 @@
         }
       ],
       [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+        }
+      ],
+      [
         "expo-font",
         {
           "android": {
@@ -100,7 +106,8 @@
         }
       ],
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

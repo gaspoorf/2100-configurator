@@ -10,12 +10,21 @@ import Animated, {
     BounceIn,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useAudioPlayer } from 'expo-audio';
+import { useConfiguratorSocket } from "@/hooks/useSocket";
+import {  Socket } from "socket.io-client";
 
+const audioClick = require('../../assets/audio/clickui.wav');
 
 type Props = {
     userName: string | null;
+    roomId: string;
+    socket: Socket | null;
+    values: any;
     onComplete: () => void;
 };
+
+
 
 const TUTO_STEPS = [
     { title: "Joue avec les boutons pour faconner ton monde", description: "" },
@@ -29,9 +38,28 @@ const TUTO_IMG = [
     require("../../assets/img/tuto3.png"),
 ];
 
-export default function Tuto({ userName, onComplete }: Props) {
+export default function Tuto({ userName, onComplete, roomId, socket, values }: Props) {
     const [step, setStep] = useState(0);
     const [direction, setDirection] = useState<'next' | 'prev'>('next');
+
+    const playerClick = useAudioPlayer(audioClick);
+
+    
+    const handlePressNext = async () => {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        playerClick.seekTo(0);
+        playerClick.play();
+        handleNext();
+    };
+
+    const handlePressPrev = async () => {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        playerClick.seekTo(0);
+        playerClick.play();
+        handlePrev();
+    };
+        
+
 
     const handleNext = () => {
         if (step < TUTO_STEPS.length - 1) {
@@ -52,6 +80,9 @@ export default function Tuto({ userName, onComplete }: Props) {
             }, 10);
         }
     };
+
+    const { sendTutoEnd } = useConfiguratorSocket(socket, roomId,  values );
+
 
     const currentContent = {
         ...TUTO_STEPS[step],
@@ -147,7 +178,7 @@ export default function Tuto({ userName, onComplete }: Props) {
                 {step === 0 && (
                     <TouchableOpacity
                         style={[styles.button, styles.button]}
-                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleNext() })}
+                        onPress={handlePressNext}
                     >
                         <Image
                             source={require("../../assets/icons/arrow.png")}
@@ -156,11 +187,11 @@ export default function Tuto({ userName, onComplete }: Props) {
                     </TouchableOpacity>
                 )}
 
-                {step > 0 && (
+                {step > 0 && step < TUTO_STEPS.length - 1  && (
                     <>
                         <TouchableOpacity
                             style={[styles.button, styles.button]}
-                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handlePrev() })}
+                            onPress={handlePressPrev}
                         >
                             <Image
                                 source={require("../../assets/icons/arrow.png")}
@@ -170,7 +201,7 @@ export default function Tuto({ userName, onComplete }: Props) {
 
                         <TouchableOpacity
                             style={[styles.button, styles.button]}
-                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleNext() })}
+                            onPress={handlePressNext}
                         >
                             <Image
                                 source={require("../../assets/icons/arrow.png")}
@@ -179,6 +210,32 @@ export default function Tuto({ userName, onComplete }: Props) {
                         </TouchableOpacity>
                     </>
                 )}
+
+                {step == TUTO_STEPS.length - 1  && (
+                    <>
+                        <TouchableOpacity
+                            style={[styles.button, styles.button]}
+                            onPress={handlePressPrev}
+                        >
+                            <Image
+                                source={require("../../assets/icons/arrow.png")}
+                                style={[styles.buttonArrow, { transform: [{ rotate: '180deg'}, { scale: 0.2 }] }]}
+                            />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.button, styles.button]}
+                            onPress={() => {handlePressNext(); sendTutoEnd();}}
+                        >
+                            <Image
+                                source={require("../../assets/icons/arrow.png")}
+                                style={styles.buttonArrow}
+                            />
+                        </TouchableOpacity>
+                    </>
+                )}
+
+
 
             </View>
 

@@ -9,6 +9,8 @@ import { Model } from "@/components/three/Model";
 import { CameraController, CAMERA_COUNT  } from "@/components/three/CameraController";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useConfiguratorSocket } from "@/hooks/useSocket";
+import { useAudioPlayer } from 'expo-audio';
+import { Video } from 'expo-av';
 import Animated, { 
     SlideInDown, 
     FadeOutUp, 
@@ -17,12 +19,6 @@ import Animated, {
     FadeIn,
     FadeOut,
     FadeOutDown,
-    ZoomIn,
-    useAnimatedStyle,
-    withSpring,
-    withDelay,
-    withSequence,
-    withTiming
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -32,6 +28,8 @@ import { Accelerometer } from 'expo-sensors';
 import type { EventSubscription } from 'expo-modules-core';
 
 
+const audioAppear = require('../../assets/audio/appear-model.wav');
+const audioClick = require('../../assets/audio/clickui.wav');
 
 type Props = {
     userName: string;
@@ -67,20 +65,11 @@ const getRankImage = (rankPath: string) => {
 
 
 
-export default function App({ userName, roomId, socket, onTransitionEnd, isModelAppear  }: Props) {
-    // const [plane, setPlane] = useState(10);
-    // const [transport, setTransport] = useState<"100" | "50" | "0" | 0>(0);
-    // const [promptIA, setPromptIA] = useState<0 | 50 | 100>(0);
-    // const [energy, setEnergy] = useState<0 | 33 | 66 | 100>(0);
-    // const [meat, setMeat] = useState(false);
-    // const [products, setProducts] = useState(5);
-    // const [phone, setPhone] = useState<"IPhone 17" | "Nokia 3310"| 0>(0);
-    // const [clothes, setClothes] = useState(5);
-
+export default function App({ userName, roomId, socket, isModelAppear }: Props) {
 
     type ConfiguratorState = {
         plane: number;
-        transport: 0 | 50 | 100;
+        transport: 100 | 50 | 0;
         promptIA: 0 | 50 | 100;
         energy: 0 | 33 | 66 | 100;
         meat: 0 | 100;
@@ -126,10 +115,23 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
     const [isResetPopupVisible, setIsResetPopupVisible] = useState(false);
     const [localIsModelAppear, setLocalIsModelAppear] = useState(false);
 
+    const player = useAudioPlayer(audioAppear);
+    const playSound = useCallback(() => {
+        player.seekTo(0);
+        player.play();
+    }, [player]);
+
+    const playerUI = useAudioPlayer(audioClick);
+    const playSoundUI = useCallback(() => {
+      playerUI.seekTo(0);
+      playerUI.play();
+    }, [playerUI]);
+
     useEffect(() => {
         if (isModelAppear && !localIsModelAppear) {
             setTimeout(() => {
                 setLocalIsModelAppear(true);
+                playSound();
             }, 100);
         }
     }, [isModelAppear, localIsModelAppear]);
@@ -221,7 +223,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
         nextCam();
         nextStep();
         setIsModelTurned(true);
-        
+        playSound();
         sendValidateForm(); // VALIDATE_FORM
     };
 
@@ -337,7 +339,6 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             isModelTurned={isModelTurned}
                             resultIsShown={resultIsShown}
                             feedbackIsShown={feedbackIsShown}
-                            onReveal={sendReveal}
                             onCameraMovement={sendCameraMovement}
                             onYearChange={sendYearTarget}
                             onResetClick={handleResetClick}
@@ -351,15 +352,16 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             {!isModelTurned && (
                 <View style={styles.buttons}>
                     {currentStep > 0 && (
-                        <TouchableOpacity onPress={() => { prevCam(); prevStep(); setIsModelTurned(false) }} style={styles.button}>
+                        <TouchableOpacity onPress={() => { prevCam(); prevStep(); setIsModelTurned(false); playSoundUI(); }} style={styles.button}>
                             <Image
                                 source={require("../../assets/icons/arrow.png")}
                                 style={[styles.buttonArrow, { transform: [{ rotate: '180deg'}, { scale: 0.2 }] }]}
                             />
+                            
                         </TouchableOpacity>
                     )}
                     {currentStep < steps.length - 1 && (
-                        <TouchableOpacity onPress={() => { nextCam(); nextStep(); }} style={styles.button}>
+                        <TouchableOpacity onPress={() => { nextCam(); nextStep(); sendReveal(); playSoundUI();}} style={styles.button}>
                             <Image
                                 source={require("../../assets/icons/arrow.png")}
                                 style={styles.buttonArrow}
@@ -384,7 +386,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                 <View style={styles.buttons}>
                     {currentStep === steps.length - 1 && (
 
-                        <TouchableOpacity onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{handleFeedbacks(); sendShowResult();})} style={[styles.button, { width: 'auto'}]}>
+                        <TouchableOpacity onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{handleFeedbacks(); sendShowResult(); playSoundUI();})} style={[styles.button, { width: 'auto'}]}>
                             <Text style={styles.buttonText}>Voir le résultat de {userName}</Text>
                         </TouchableOpacity>
                     )}
@@ -394,16 +396,16 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             {isModelTurned && feedbackIsShown && (
                 <Animated.View entering={FadeIn.duration(400)} exiting={FadeOutDown.duration(300)} style={styles.ResultsPanel}>
 
-                    <TouchableOpacity onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{closeResult(); sendCloseResult();})} style={[styles.button, styles.buttonClose]}>
+                    <TouchableOpacity onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{closeResult(); sendCloseResult(); playSoundUI();})} style={[styles.button, styles.buttonClose]}>
                         <Image
                             source={require("../../assets/icons/close.png")}
                             style={styles.buttonCloseIcon}
                         />
                     </TouchableOpacity>
 
-                    <View style={{overflow: 'hidden', flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20}}>
+                    <View style={{overflow: 'hidden', flex: 1, justifyContent: 'flex-start', alignItems: 'center', padding: 20, borderBottomLeftRadius: 48, borderBottomRightRadius: 48}}>
 
-                        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{flexDirection: 'column', alignItems: 'center', marginTop: 70, gap: 0}}>
+                        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{flexDirection: 'column', alignItems: 'center', marginTop: 80, gap: 0}}>
                             <Animated.Image
                                 entering={FadeInDown.delay(150).duration(350)}
                                 source={getRankImage(resultData?.rank || '/icons/rank-f.png')}
@@ -416,15 +418,19 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                         </Animated.View>
                     
                         <Animated.View entering={FadeInDown.delay(500).springify()} style={styles.buttonExplanations}>
-                            <TouchableOpacity  onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{handleResult(); sendShowExplanations();})} style={[styles.button, { width: 'auto'}]}>
+                            <TouchableOpacity  onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{handleResult(); sendShowExplanations(); playSoundUI();})} style={[styles.button, { width: 'auto'}]}>
                                 <Text style={styles.buttonText}>Comprendre ses erreurs</Text>
                             </TouchableOpacity>
                         </Animated.View>
 
                         <Animated.View entering={FadeIn.delay(300)} style={styles.imageResultsContainer}>
-                            <Image
-                                source={require("../../assets/img/hero.png")}
+                            <Video
+                                source={require("../../assets/videos/results.mp4")}
                                 style={styles.imageResults}
+                                isLooping={true}
+                                isMuted={true}
+                                shouldPlay={true}
+                                useNativeControls={false}
                             />
                         </Animated.View>
                     </View>
@@ -437,7 +443,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
             {isModelTurned && resultIsShown && (
                 <Animated.View entering={FadeIn.duration(400)} exiting={FadeOutUp.duration(300)} style={styles.ResultsPanel}>
 
-                    <TouchableOpacity onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{closeResult(); sendCloseResult();})}  style={[styles.button, styles.buttonClose]}>
+                    <TouchableOpacity onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() =>{closeResult(); sendCloseResult(); playSoundUI();})}  style={[styles.button, styles.buttonClose]}>
                         <Image
                             source={require("../../assets/icons/close.png")}
                             style={styles.buttonCloseIcon}
@@ -453,7 +459,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(0); })}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(0); playSoundUI(); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -475,7 +481,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(1); })}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(1); playSoundUI(); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -499,7 +505,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(2); })}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(2); playSoundUI(); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -521,7 +527,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(3); })}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(3); playSoundUI(); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -545,7 +551,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(4); })}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(4); playSoundUI(); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -567,7 +573,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(5); })}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(5); playSoundUI(); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -591,7 +597,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(6); })}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(6); playSoundUI(); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -613,7 +619,7 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                             ]}
                         >
                             <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(7); })}
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).then(() => { handleQuestionClick(7); playSoundUI(); })}
                                 style={[
                                     styles.button,
                                     styles.buttonQuestion,
@@ -643,10 +649,10 @@ export default function App({ userName, roomId, socket, onTransitionEnd, isModel
                         <Text style={styles.popupDescription}>La planète n'aura aucun souvenir de ce que tu viens de répondre. </Text>
 
                         <View style={styles.popupButtons}>
-                            <TouchableOpacity onPress={() => { closeResetPopup() ; resetConfiguration(); }} style={styles.popupButton}>
+                            <TouchableOpacity onPress={() => { closeResetPopup() ; resetConfiguration(); playSoundUI(); }} style={styles.popupButton}>
                                 <Text style={styles.popupButtonText}>Oui, on recommence</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={closeResetPopup} style={styles.popupCloseButton}>
+                            <TouchableOpacity onPress={() => { closeResetPopup(); playSoundUI(); }} style={styles.popupCloseButton}>
                                 <Text style={styles.popupButtonText}>Oups, finalement non</Text>
                             </TouchableOpacity>
                         </View>
@@ -723,15 +729,20 @@ const styles = StyleSheet.create({
         alignItems: 'center', 
         padding: 0, 
         paddingVertical: 0,
-        bottom: -35,
+        bottom: 0,
+        position: 'absolute', 
+        width: '115%',
+        height: '65%',
+        zIndex: -1,
     },
 
     imageResults: {
         bottom: 0,
-        position: 'absolute', 
-        width: '180%',
+        position: 'absolute',
+        width: '100%',
         height: '100%',
         zIndex: 0, 
+       
     },
     question: {
         color: "#000000",
@@ -819,7 +830,7 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "103%",
         padding: 0,
-        backgroundColor: "white",
+        backgroundColor: "#F4F3EF",
         borderRadius: 48,
         zIndex: 2,
         gap: 30,
