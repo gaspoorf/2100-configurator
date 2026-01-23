@@ -47,17 +47,17 @@ const getRankImage = (rankPath: string) => {
     const filename = rankPath.split('/').pop();
     
     switch(filename) {
-        case 'rank-a.png':
+        case 'rank-a.webp':
             return require("../../assets/icons/rank-a.png");
-        case 'rank-b.png':
+        case 'rank-b.webp':
             return require("../../assets/icons/rank-b.png");
-        case 'rank-c.png':
+        case 'rank-c.webp':
             return require("../../assets/icons/rank-c.png");
-        case 'rank-d.png':
+        case 'rank-d.webp':
             return require("../../assets/icons/rank-d.png");
-        case 'rank-e.png':
+        case 'rank-e.webp':
             return require("../../assets/icons/rank-e.png");
-        case 'rank-f.png':
+        case 'rank-f.webp':
         default:
             return require("../../assets/icons/rank-f.png");
     }
@@ -114,6 +114,8 @@ export default function App({ userName, roomId, socket, isModelAppear }: Props) 
     const [activeQuestion, setActiveQuestion] = useState<number | null>(null);
     const [isResetPopupVisible, setIsResetPopupVisible] = useState(false);
     const [localIsModelAppear, setLocalIsModelAppear] = useState(false);
+
+    const [isResultDataLoaded, setIsResultDataLoaded] = useState(false);
 
     const player = useAudioPlayer(audioAppear);
     const playSound = useCallback(() => {
@@ -207,14 +209,14 @@ export default function App({ userName, roomId, socket, isModelAppear }: Props) 
 
     const getQuestionText = () => {
         switch (currentStep) {
-            case 0: return `À quelle fréquence ${userName} prend l'avion ? ${Math.round(plane)}`;
-            case 1: return `Comment ${userName} se déplace au quotidien ? ${transport}`;
-            case 2: return `À quelle fréquence ${userName} utilise l'Intelligence Artificielle ? ${promptIA}`;
-            case 3: return `${userName} mange beaucoup de viande ? ${meat}`;
-            case 4: return `${userName} mange local ? Ou ses produits ont fait 3x le tour du globe avant d'arriver dans son assiette ? ${Math.round(products)}`;
-            case 5: return `${userName} s'équipe d'un IPhone 17, ou se contente d'un Nokia 3310 ? ${phone}`;
-            case 6: return `À quelle température ${userName} chauffe son logement ? ${energy}`;
-            case 7: return `À quelle fréquence ${userName} achète des vêtements ? ${Math.round(clothes)}`;
+            case 0: return `À quelle fréquence ${userName} prend l'avion dans l'année ?`;
+            case 1: return `Comment ${userName} se déplace au quotidien ?`;
+            case 2: return `À quelle fréquence ${userName} utilise l'Intelligence Artificielle ?`;
+            case 3: return `${userName} mange beaucoup de viande ?`;
+            case 4: return `${userName} mange local ? Ou ses produits ont fait 3x le tour du globe avant d'arriver dans son assiette ?`;
+            case 5: return `${userName} s'équipe d'un IPhone 17, ou se contente d'un Nokia 3310 ?`;
+            case 6: return `À quelle température ${userName} chauffe son logement ?`;
+            case 7: return `À quelle fréquence ${userName} achète des vêtements ?`;
             default: return "Configuration terminée";
         }
     };
@@ -228,8 +230,16 @@ export default function App({ userName, roomId, socket, isModelAppear }: Props) 
     };
 
     const handleFeedbacks = () => {
-        setFeedbackIsShown(true);
+        setIsResultDataLoaded(false);
+        sendShowResult();
     };
+
+    useEffect(() => {
+        if (resultData && !isResultDataLoaded) {
+            setIsResultDataLoaded(true);
+            setFeedbackIsShown(true);
+        }
+    }, [resultData, isResultDataLoaded]);
 
     const handleResult = () => {
         setFeedbackIsShown(false);
@@ -301,12 +311,12 @@ export default function App({ userName, roomId, socket, isModelAppear }: Props) 
                 </Animated.View>
             )}
 
-            <Animated.View style={styles.imageContainer} entering={FadeInUp.duration(300).delay(4000)} exiting={FadeOutDown.duration(300)}>
+            <View style={styles.imageContainer}>
                 <Image
                     source={require("../../assets/img/hero-return.png")}
                     style={styles.image}
                 />
-            </Animated.View>
+            </View>
             
 
             <View style={styles.canvas}>

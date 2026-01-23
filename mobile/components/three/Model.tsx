@@ -160,7 +160,6 @@ export const Model = React.memo(function Model({
 
     // haptics dragg
     const lastCursorHapticValue = useRef(0);
-    // Pour suivre la dernière rotation de la gear qui a vibré
     const lastGearHapticRotation = useRef(0);
 
     // reset anim et boutons
@@ -554,8 +553,18 @@ export const Model = React.memo(function Model({
 
         Object.values(button7.current).forEach((b: any) => {
             if (!b) return;
-            const i = energy === 100 ? 0 : energy === 0 ? 1 : energy === 66 ? 2 : 3;
-            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, b.userData.initial + [0, 1.57, -1.57, -3.14][i], 0.2);
+            
+            let targetRotation = b.userData.initial;
+            
+            if (energy === 66) {
+                targetRotation = b.userData.initial + Math.PI/2;
+            } else if (energy === 100) {
+                targetRotation = b.userData.initial + Math.PI;
+            } else if (energy === 0) {
+                targetRotation = b.userData.initial - Math.PI/2;
+            }
+            
+            b.rotation.y = THREE.MathUtils.lerp(b.rotation.y, targetRotation, 0.2);
         });
 
         Object.entries(spots.current).forEach(([k, b]) => {
@@ -641,9 +650,9 @@ export const Model = React.memo(function Model({
         }
 
         const transportsBtn: Record<"2a" | "2b" | "2c", 0 | 50 | 100> = {
-            "2a": 0,
+            "2a": 100,
             "2b": 50,
-            "2c": 100,
+            "2c": 0,
         };
         if (["2a", "2b", "2c"].includes(name)) {
             triggerHaptic();
@@ -783,30 +792,53 @@ export const Model = React.memo(function Model({
         if (draggingButton7.current) {
             const button = button7.current["7"];
             if (button) {
-                const initialRotation = button.userData.initial;
-                const positions = [
-                    initialRotation,           // 100 (bas)
-                    initialRotation + 1.57,    // 0 (gauche)
-                    initialRotation - 1.57,    // 66 (droite)
-                    initialRotation - 3.14     // 33 (haut)
+                const initial = button.userData.initial;
+                
+                let diff = button.rotation.y - initial;
+                
+                while (diff > Math.PI) diff -= 2 * Math.PI;
+                while (diff < -Math.PI) diff += 2 * Math.PI;
+                
+
+                const zones = [
+                    { angle: 0, value: 33 },
+                    { angle: Math.PI/2, value: 66 },
+                    { angle: Math.PI, value: 100 },
+                    { angle: -Math.PI/2, value: 0 }
                 ];
                 
-                let closestIndex = 0;
-                let minDiff = Math.abs(button.rotation.y - positions[0]);
+                let closestZone = zones[0];
+                let minDistance = Math.abs(diff);
                 
-                for (let i = 1; i < positions.length; i++) {
-                    const diff = Math.abs(button.rotation.y - positions[i]);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closestIndex = i;
+                for (const zone of zones) {
+                    let distance = Math.abs(diff - zone.angle);
+                    
+                    if (distance > Math.PI) {
+                        distance = 2 * Math.PI - distance;
+                    }
+                    
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestZone = zone;
                     }
                 }
-            
-                const values: Array<0 | 33 | 66 | 100> = [100, 0, 66, 33];
-                const targetValue = values[closestIndex];
-                if (targetValue !== energy) {
-                    onEnergyChange();
+                
+                const currentEnergy = energy;
+                const targetEnergy = closestZone.value as 0 | 33 | 66 | 100;
+                
+                const energySequence = [0, 33, 66, 100];
+                const currentIndex = energySequence.indexOf(currentEnergy);
+                const targetIndex = energySequence.indexOf(targetEnergy);
+                
+                if (currentIndex !== -1 && targetIndex !== -1 && currentIndex !== targetIndex) {
+                    let steps = targetIndex - currentIndex;
+                    if (steps < 0) steps += 4;
+                    
+                    for (let i = 0; i < steps; i++) {
+                        setTimeout(() => onEnergyChange(), i * 10);
+                    }
                 }
+                
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             }
         }
@@ -868,7 +900,6 @@ export const Model = React.memo(function Model({
             }
         }
     
-        // Gestion du bouton 7 rotatif - LE BOUTON SUIT LE DOIGT
         if (draggingButton7.current) {
             const button = button7.current["7"];
             if (button && state.raycaster.ray.intersectPlane(button7Plane.current, intersection.current)) {
@@ -881,43 +912,49 @@ export const Model = React.memo(function Model({
                 
                 let deltaAngle = currentAngle - button7StartAngle.current;
                 
-                // Normaliser l'angle entre -PI et PI
                 while (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
                 while (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
                 
-                // NOUVEAU: Le bouton suit directement le doigt
                 button.rotation.y = button7CurrentRotation.current + deltaAngle;
                 
-                // Déterminer la position la plus proche pour le feedback haptique
-                const initialRotation = button.userData.initial;
-                const positions = [
-                    initialRotation,           // 100 (bas)
-                    initialRotation + 1.57,    // 0 (gauche)
-                    initialRotation - 1.57,    // 66 (droite)
-                    initialRotation - 3.14     // 33 (haut)
+                const initial = button.userData.initial;
+                let diff = button.rotation.y - initial;
+                
+                while (diff > Math.PI) diff -= 2 * Math.PI;
+                while (diff < -Math.PI) diff += 2 * Math.PI;
+                
+                const zones = [
+                    { angle: 0, value: 33 },
+                    { angle: Math.PI/2, value: 66 },
+                    { angle: Math.PI, value: 100 },
+                    { angle: -Math.PI/2, value: 0 }
                 ];
                 
-                let closestIndex = 0;
-                let minDiff = Math.abs(button.rotation.y - positions[0]);
+                let closestZone = zones[0];
+                let minDistance = Math.abs(diff);
                 
-                for (let i = 1; i < positions.length; i++) {
-                    const diff = Math.abs(button.rotation.y - positions[i]);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closestIndex = i;
+                for (const zone of zones) {
+                    let distance = Math.abs(diff - zone.angle);
+                    if (distance > Math.PI) {
+                        distance = 2 * Math.PI - distance;
+                    }
+                    
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestZone = zone;
                     }
                 }
                 
-                const values: Array<0 | 33 | 66 | 100> = [100, 0, 66, 33];
-                const newValue = values[closestIndex];
+                const newValue = closestZone.value as 0 | 33 | 66 | 100;
                 
-                // Feedback haptique quand on passe près d'une position
                 if (newValue !== lastButton7HapticPosition.current) {
                     Haptics.selectionAsync();
                     lastButton7HapticPosition.current = newValue;
                 }
             }
         }
+
+
     });
 
 
@@ -947,9 +984,8 @@ export const Model = React.memo(function Model({
 
             const GEAR_NOTCH_STEP = 0.2; 
     
-            // On vérifie la différence entre la cible actuelle et la dernière vibration
             if (Math.abs(gearTarget.current - lastGearHapticRotation.current) >= GEAR_NOTCH_STEP) {
-                Haptics.selectionAsync(); // <--- Le "Tic" mécanique
+                Haptics.selectionAsync(); 
                 lastGearHapticRotation.current = gearTarget.current;
             }
             

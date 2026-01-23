@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { Video } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { useAudioPlayer } from 'expo-audio';
 import Animated, { 
