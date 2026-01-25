@@ -1,0 +1,13 @@
+@use "./fonts.scss";
+@use "./reset.scss";
+@use "./variables.scss";
+
+body {
+  font-family: milling;
+}
+
+p {
+  font-size: 1.56vw;
+  line-height: 125%;
+  font-weight: 200;
+}

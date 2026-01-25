@@ -1,0 +1,15 @@
+:root {
+  --dark: #17161d;
+  --grey: #908f8c;
+  --white: #f4f3ef;
+  --blue: #2676ff;
+  --pink: #f538bf;
+  --green: #41e4c9;
+  --yellow: #ffba1a;
+  --white-gradient: linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0.5) 100%
+    ),
+    linear-gradient(180deg, #fcfcfc 0%, #d1d1d1 100%);
+}

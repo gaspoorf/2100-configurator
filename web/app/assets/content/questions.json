@@ -1,0 +1,226 @@
+[
+  {
+    "number": "Question 1",
+    "icon": "/icons/plane.webp",
+    "officialData": {
+      "text": "Selon l’ADEME, l’avion est le mode de transport le plus émetteur de CO₂ par passager. Réduire fortement ses vols peut diminuer de 30 à 50 % l’empreinte carbone annuelle d’une personne très mobile.",
+      "linkText": "ImpactCO2",
+      "link": "https://impactco2.fr/outils/transport/avion-moyencourrier"
+    },
+    "explanations": [
+      {
+        "text": "%name prend très rarement l’avion. Ce choix limite fortement ses émissions liées aux transports longue distance, qui sont parmi les plus polluantes.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name prend l’avion occasionnellement. L’impact reste modéré, surtout si ces vols sont exceptionnels et compensés par des modes de transport plus sobres le reste du temps.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name prend l’avion régulièrement. Cela représente une part importante de son empreinte carbone annuelle, notamment à cause des vols courts et moyens courriers.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name prend très souvent l’avion. Ce comportement a un impact climatique élevé, car l’aviation émet beaucoup de CO₂ et d’autres gaz à effet de serre en altitude.",
+        "illustration": "/images/ilu2.png"
+      }
+    ],
+    "params": "plane"
+  },
+  {
+    "number": "Question 2",
+    "icon": "/icons/transports.webp",
+    "officialData": {
+      "text": "Selon l’ADEME, passer de la voiture individuelle aux transports en commun, au vélo ou à la marche peut réduire les émissions liées aux déplacements quotidiens de 60 à 90 %.",
+      "linkText": "ADEME",
+      "link": "https://agirpourlatransition.ademe.fr/particuliers/evaluer-son-impact/calculer-empreinte-carbone/calculer-emissions-carbone-trajets"
+    },
+    "explanations": [
+      {
+        "text": "%name se déplace principalement en %reponse. Ce choix réduit fortement les émissions de CO₂ liées aux trajets du quotidien.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name alterne entre voiture et modes de transport plus sobres. Son impact reste intermédiaire, mais peut encore être réduit.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name utilise majoritairement la voiture pour ses déplacements. Cela génère des émissions importantes, surtout sur les trajets courts.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name se déplace presque exclusivement en voiture individuelle. Ce mode de transport est l’un des plus émetteurs par personne.",
+        "illustration": "/images/ilu2.png"
+      }
+    ],
+    "params": "transport"
+  },
+  {
+    "number": "Question 3",
+    "icon": "/icons/ia.webp",
+    "officialData": {
+      "text": "Selon l’Agence Internationale de l’Énergie (IEA), le numérique représente environ 2 à 4 % des émissions mondiales de gaz à effet de serre, et l’IA contribue à la hausse de la consommation énergétique des centres de données.",
+      "linkText": "IEA – Digitalisation and energy",
+      "link": "https://www.iea.org/reports/digitalisation-and-energy"
+    },
+    "explanations": [
+      {
+        "text": "%name utilise l’intelligence artificielle de manière occasionnelle. L’impact environnemental reste faible à l’échelle individuelle.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name utilise régulièrement des outils d’IA. Cela augmente la consommation énergétique liée aux serveurs et aux centres de données.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name utilise très fréquemment l’IA pour de nombreux usages. Cette pratique contribue à une demande accrue en énergie numérique.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name utilise intensivement l’IA. À grande échelle, ce type d’usage participe à l’augmentation de l’empreinte carbone du numérique.",
+        "illustration": "/images/ilu2.png"
+      }
+    ],
+    "params": "promptIA"
+  },
+  {
+    "number": "Question 4",
+    "icon": "/icons/meat.webp",
+    "officialData": {
+      "text": "Selon la FAO, l’élevage représente environ 14,5 % des émissions mondiales de gaz à effet de serre. Réduire sa consommation de viande peut diminuer de 20 à 30 % l’empreinte carbone alimentaire.",
+      "linkText": "FAO",
+      "link": "https://www.fao.org/home/en/"
+    },
+    "explanations": [
+      {
+        "text": "%name consomme peu ou pas de viande. Ce choix réduit fortement l’impact climatique lié à son alimentation.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name consomme de la viande occasionnellement. L’impact reste modéré, surtout si les repas végétaux sont majoritaires.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name consomme régulièrement de la viande. Cela augmente les émissions liées à l’élevage et à la production alimentaire.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name consomme beaucoup de viande, notamment rouge. Ce type d’alimentation a un fort impact carbone.",
+        "illustration": "/images/ilu2.png"
+      }
+    ],
+    "params": "meat"
+  },
+  {
+    "number": "Question 5",
+    "icon": "/icons/products.webp",
+    "officialData": {
+      "text": "Selon l’ADEME, privilégier les produits locaux et de saison permet de réduire l’impact carbone lié au transport, au stockage et aux serres chauffées.",
+      "linkText": "ADEME",
+      "link": "https://agirpourlatransition.ademe.fr/particuliers/evaluer-son-impact/calculer-impact-alimentation/mesurez-empreinte-carbone-assiette"
+    },
+    "explanations": [
+      {
+        "text": "%name consomme principalement des produits %reponse. Cela limite les émissions liées au transport et à la production hors saison.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name fait parfois attention à l’origine et à la saisonnalité des produits. L’impact reste intermédiaire.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name consomme souvent des produits importés ou hors saison. Cela augmente l’empreinte carbone de son alimentation.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name consomme majoritairement des produits très transformés ou importés de loin. Ce mode de consommation est plus émetteur.",
+        "illustration": "/images/ilu2.png"
+      }
+    ],
+    "params": "products"
+  },
+  {
+    "number": "Question 6",
+    "icon": "/icons/phone.webp",
+    "officialData": {
+      "text": "Selon l’ADEME, la fabrication représente la majeure partie de l’impact environnemental d’un smartphone. Doubler sa durée de vie permet de réduire son impact de 30 à 40 %.",
+      "linkText": "ADEME",
+      "link": "https://agirpourlatransition.ademe.fr/particuliers/evaluer-son-impact/calculer-empreinte-carbone/calculez-empreinte-carbone-usages-numeriques"
+    },
+    "explanations": [
+      {
+        "text": "%name garde son téléphone longtemps. Cela limite les impacts liés à l’extraction de ressources et à la fabrication.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name change de téléphone occasionnellement. L’impact reste modéré.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name change régulièrement de téléphone. Cela augmente la demande en ressources et en énergie.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name change très souvent de téléphone. Ce comportement a un impact environnemental élevé.",
+        "illustration": "/images/ilu2.png"
+      }
+    ],
+    "params": "phone"
+  },
+  {
+    "number": "Question 7",
+    "icon": "/icons/energy.webp",
+    "officialData": {
+      "text": "Selon l’ADEME, baisser le chauffage de 1°C permet de réduire d’environ 7 % les émissions liées au chauffage du logement.",
+      "linkText": "ADEME",
+      "link": "https://agirpourlatransition.ademe.fr/particuliers/evaluer-son-impact/calculer-impact-logement/simulateur-impact-carbone-chauffage"
+    },
+    "explanations": [
+      {
+        "text": "%name chauffe peu son logement. Cela réduit significativement les consommations d’énergie.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name chauffe son logement de manière raisonnable. L’impact reste limité.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name chauffe assez fort son logement. Cela augmente les émissions liées à l’énergie.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name chauffe très fortement son logement. Ce choix a un impact climatique important.",
+        "illustration": "/images/ilu2.png"
+      }
+    ],
+    "params": "energy"
+  },
+  {
+    "number": "Question 8",
+    "icon": "/icons/clothes.webp",
+    "officialData": {
+      "text": "Selon l’ADEME, acheter deux fois moins de vêtements peut réduire l’impact carbone lié au textile de 25 à 30 %.",
+      "linkText": "GreenPeace",
+      "link": "https://www.greenpeace.fr/comment-opter-pour-une-mode-plus-ethique-et-responsable/"
+    },
+    "explanations": [
+      {
+        "text": "%name achète peu de vêtements neufs. Cela limite l’impact d’une industrie très consommatrice d’eau et d’énergie.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name achète des vêtements de temps en temps. L’impact reste modéré.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name achète régulièrement des vêtements neufs. Cela augmente l’empreinte carbone liée au textile.",
+        "illustration": "/images/ilu2.png"
+      },
+      {
+        "text": "%name renouvelle très souvent sa garde-robe. L’industrie textile est l’une des plus polluantes au monde.",
+        "illustration": "/images/ilu2.png"
+      }
+    ],
+    "params": "clothes"
+  }
+]

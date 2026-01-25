@@ -25,4 +25,14 @@ config.resolver.assetExts = [
   'wav',
 ];
 
+config.transformer = {
+  ...config.transformer,
+  getTransformOptions: async () => ({
+    transform: {
+      experimentalImportSupport: false,
+      inlineRequires: true,
+    },
+  }),
+};
+
 module.exports = config;
