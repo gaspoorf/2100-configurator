@@ -78,6 +78,8 @@ npx expo start
 - Scanner le QR code
 - Le téléphone doit être sur le même réseau que le serveur
 
+**Note** : Ce projet nécessite `expo-file-system@18.1.11` (pas la dernière) pour que les assets GLB fonctionnent correctement avec `@react-three/drei`.
+
 ### 3️⃣ Lancer l'application web
 
 ```bash
