@@ -2,7 +2,7 @@
 
 ![Aperçu](2100.webp)
 
-**2100** est une expérience immersive et interactive autour des enjeux climatiques. Les actions effectuées sur une application mobile influencent en temps réel une scène 3D affichée sur le web, simulant l'évolution du climat jusqu'en 2100.
+**2100** est un projet Gobelins, une expérience immersive et interactive autour des enjeux climatiques. Les actions effectuées sur une application mobile influencent en temps réel une scène 3D affichée sur le web, simulant l'évolution du climat jusqu'en 2100.
 
 Le projet est composé de 3 applications synchronisées via WebSockets :
 
